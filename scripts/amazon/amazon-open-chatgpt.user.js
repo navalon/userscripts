@@ -1,14 +1,14 @@
 // ==UserScript==
 // @name         Amazon Messaging → Abrir ChatGPT (dinámico)
 // @namespace    https://github.com/navalon/userscripts
-// @version      2.0.1
+// @version      2.1.0
 // @description  Copia la conversación del hilo activo de Amazon Messaging y abre el chat
-//               destino de ChatGPT configurado con chatgpt-router-manager.
+//               destino de ChatGPT configurado con chatgpt-router-manager (vía GM_cookie).
 // @match        https://sellercentral.amazon.es/messaging*
 // @updateURL    https://raw.githubusercontent.com/navalon/userscripts/main/scripts/amazon/amazon-open-chatgpt.user.js
 // @downloadURL  https://raw.githubusercontent.com/navalon/userscripts/main/scripts/amazon/amazon-open-chatgpt.user.js
 // @grant        GM_setClipboard
-// @grant        GM_getValue
+// @grant        GM_cookie
 // @run-at       document-idle
 // ==/UserScript==
 
@@ -16,8 +16,21 @@
   'use strict';
 
   // ── Configuración ──
-  const STORE_KEY = 'chatgpt_active_url';   // misma clave que chatgpt-router-manager
-  const BTN_ID    = 'tm-amazon-chatgpt-btn';
+  const COOKIE_NAME = 'tm_chatgpt_target';  // misma cookie que chatgpt-router-manager
+  const BTN_ID      = 'tm-amazon-chatgpt-btn';
+
+  // ── Leer URL destino desde cookie (cross-domain) ──
+  function getTargetURL() {
+    return new Promise((resolve) => {
+      GM_cookie.list({ url: 'https://chatgpt.com', name: COOKIE_NAME }, (cookies) => {
+        if (cookies && cookies.length > 0) {
+          resolve(decodeURIComponent(cookies[0].value));
+        } else {
+          resolve('');
+        }
+      });
+    });
+  }
 
   // ── Helpers ──
   const b64 = (s) => btoa(unescape(encodeURIComponent(s)));
@@ -98,7 +111,7 @@
       'background:#1a73e8;color:#fff;font-weight:600;cursor:pointer;';
 
     btn.addEventListener('click', async () => {
-      const targetURL = GM_getValue(STORE_KEY, '');
+      const targetURL = await getTargetURL();
       if (!targetURL) {
         alert('⚠️ No hay chat destino configurado.\nAbre ChatGPT y pulsa "Usar este chat como destino".');
         return;

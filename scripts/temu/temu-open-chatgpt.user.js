@@ -1,14 +1,14 @@
 // ==UserScript==
 // @name         Temu Chat → Abrir ChatGPT (dinámico)
 // @namespace    https://github.com/navalon/userscripts
-// @version      2.0.1
+// @version      2.1.0
 // @description  Copia la conversación del chat activo de Temu Seller y abre el chat
 //               destino de ChatGPT configurado con chatgpt-router-manager.
 // @match        https://seller-eu.temu.com/*
 // @updateURL    https://raw.githubusercontent.com/navalon/userscripts/main/scripts/temu/temu-open-chatgpt.user.js
 // @downloadURL  https://raw.githubusercontent.com/navalon/userscripts/main/scripts/temu/temu-open-chatgpt.user.js
 // @grant        GM_setClipboard
-// @grant        GM_getValue
+// @grant        GM_cookie
 // @grant        GM_addStyle
 // @run-at       document-idle
 // ==/UserScript==
@@ -17,8 +17,21 @@
   'use strict';
 
   // ── Configuración ──
-  const STORE_KEY = 'chatgpt_active_url';   // misma clave que chatgpt-router-manager
+  const COOKIE_NAME = 'tm_chatgpt_target';  // misma cookie que chatgpt-router-manager
   const b64 = (s) => btoa(unescape(encodeURIComponent(s)));
+
+  // ── Leer URL destino desde cookie (cross-domain) ──
+  function getTargetURL() {
+    return new Promise((resolve) => {
+      GM_cookie.list({ url: 'https://chatgpt.com', name: COOKIE_NAME }, (cookies) => {
+        if (cookies && cookies.length > 0) {
+          resolve(decodeURIComponent(cookies[0].value));
+        } else {
+          resolve('');
+        }
+      });
+    });
+  }
 
   // ── Estilos ──
   GM_addStyle(`
@@ -123,7 +136,7 @@
   }
 
   async function openChatGPT() {
-    const targetURL = GM_getValue(STORE_KEY, '');
+    const targetURL = await getTargetURL();
     if (!targetURL) {
       alert('⚠️ No hay chat destino configurado.\nAbre ChatGPT y pulsa "Usar este chat como destino".');
       return;
