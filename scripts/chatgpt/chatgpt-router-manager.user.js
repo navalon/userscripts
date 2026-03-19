@@ -1,16 +1,16 @@
 // ==UserScript==
 // @name         ChatGPT Router Manager
 // @namespace    https://github.com/navalon/userscripts
-// @version      1.1.0
+// @version      1.2.0
 // @description  Botón flotante en ChatGPT para marcar la conversación actual como "chat destino".
-//               Los demás scripts (Amazon, Temu, etc.) leen esta URL con GM_cookie (cross-domain).
+//               Al pulsar, copia la URL al portapapeles para pegarla en los scripts de marketplace.
 // @match        https://chatgpt.com/*
 // @match        https://chat.openai.com/*
 // @updateURL    https://raw.githubusercontent.com/navalon/userscripts/main/scripts/chatgpt/chatgpt-router-manager.user.js
 // @downloadURL  https://raw.githubusercontent.com/navalon/userscripts/main/scripts/chatgpt/chatgpt-router-manager.user.js
 // @grant        GM_setValue
 // @grant        GM_getValue
-// @grant        GM_cookie
+// @grant        GM_setClipboard
 // @grant        GM_addStyle
 // @run-at       document-idle
 // ==/UserScript==
@@ -18,22 +18,9 @@
 (function () {
   'use strict';
 
-  const STORE_KEY   = 'chatgpt_active_url';
-  const COOKIE_NAME = 'tm_chatgpt_target';
-  const BTN_ID      = 'tm-router-set-btn';
-  const BADGE_ID    = 'tm-router-badge';
-
-  // ── Cookie helpers (cross-domain) ──
-  function setCookie(url) {
-    GM_cookie.set({
-      url: 'https://chatgpt.com',
-      name: COOKIE_NAME,
-      value: encodeURIComponent(url),
-      domain: '.chatgpt.com',
-      path: '/',
-      expirationDate: Math.floor(Date.now() / 1000) + 365 * 24 * 3600
-    }, () => {});
-  }
+  const STORE_KEY = 'chatgpt_active_url';
+  const BTN_ID    = 'tm-router-set-btn';
+  const BADGE_ID  = 'tm-router-badge';
 
   // ── Estilos ──
   GM_addStyle(`
@@ -114,8 +101,12 @@
       const url = currentConvURL();
       if (!url) return;
       GM_setValue(STORE_KEY, url);
-      setCookie(url);
+      try { GM_setClipboard(url); } catch (_) {}
       updateUI();
+      // Feedback visual de que se copió
+      const orig = btn.textContent;
+      btn.textContent = '📋 URL copiada al portapapeles!';
+      setTimeout(() => updateUI(), 1800);
     });
     document.body.appendChild(btn);
 

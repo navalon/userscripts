@@ -1,14 +1,16 @@
 // ==UserScript==
 // @name         Amazon Messaging → Abrir ChatGPT (dinámico)
 // @namespace    https://github.com/navalon/userscripts
-// @version      2.1.0
+// @version      2.2.0
 // @description  Copia la conversación del hilo activo de Amazon Messaging y abre el chat
-//               destino de ChatGPT configurado con chatgpt-router-manager (vía GM_cookie).
+//               destino de ChatGPT configurado con chatgpt-router-manager.
 // @match        https://sellercentral.amazon.es/messaging*
 // @updateURL    https://raw.githubusercontent.com/navalon/userscripts/main/scripts/amazon/amazon-open-chatgpt.user.js
 // @downloadURL  https://raw.githubusercontent.com/navalon/userscripts/main/scripts/amazon/amazon-open-chatgpt.user.js
 // @grant        GM_setClipboard
-// @grant        GM_cookie
+// @grant        GM_setValue
+// @grant        GM_getValue
+// @grant        GM_registerMenuCommand
 // @run-at       document-idle
 // ==/UserScript==
 
@@ -16,21 +18,38 @@
   'use strict';
 
   // ── Configuración ──
-  const COOKIE_NAME = 'tm_chatgpt_target';  // misma cookie que chatgpt-router-manager
-  const BTN_ID      = 'tm-amazon-chatgpt-btn';
+  const STORE_KEY = 'chatgpt_target_url';
+  const BTN_ID    = 'tm-amazon-chatgpt-btn';
 
-  // ── Leer URL destino desde cookie (cross-domain) ──
+  // ── URL destino (guardada localmente, se pide una vez) ──
   function getTargetURL() {
-    return new Promise((resolve) => {
-      GM_cookie.list({ url: 'https://chatgpt.com', name: COOKIE_NAME }, (cookies) => {
-        if (cookies && cookies.length > 0) {
-          resolve(decodeURIComponent(cookies[0].value));
-        } else {
-          resolve('');
-        }
-      });
-    });
+    return GM_getValue(STORE_KEY, '');
   }
+
+  function askForTargetURL() {
+    const url = prompt(
+      '🎯 Pega aquí la URL del chat destino de ChatGPT.\n\n' +
+      '(Ve a ChatGPT → pulsa "Usar este chat como destino" → se copia al portapapeles → pégala aquí con Ctrl+V)'
+    );
+    if (url && url.startsWith('https://chat')) {
+      GM_setValue(STORE_KEY, url.split('#')[0]); // limpiar hash si lo tiene
+      return url.split('#')[0];
+    }
+    return '';
+  }
+
+  // Menú de Tampermonkey para reconfigurar
+  GM_registerMenuCommand('🎯 Cambiar chat destino de ChatGPT', () => {
+    const current = getTargetURL();
+    const msg = current
+      ? `URL actual: ${current}\n\nPega la nueva URL:`
+      : 'Pega la URL del chat destino de ChatGPT:';
+    const url = prompt(msg, current);
+    if (url && url.startsWith('https://chat')) {
+      GM_setValue(STORE_KEY, url.split('#')[0]);
+      alert('✅ Chat destino actualizado.');
+    }
+  });
 
   // ── Helpers ──
   const b64 = (s) => btoa(unescape(encodeURIComponent(s)));
@@ -111,10 +130,10 @@
       'background:#1a73e8;color:#fff;font-weight:600;cursor:pointer;';
 
     btn.addEventListener('click', async () => {
-      const targetURL = await getTargetURL();
+      let targetURL = getTargetURL();
       if (!targetURL) {
-        alert('⚠️ No hay chat destino configurado.\nAbre ChatGPT y pulsa "Usar este chat como destino".');
-        return;
+        targetURL = askForTargetURL();
+        if (!targetURL) return;
       }
 
       await raf(); await sleep(60);
