@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ChatGPT Router Manager
 // @namespace    https://github.com/navalon/userscripts
-// @version      1.0.2
+// @version      1.0.3
 // @description  Botón flotante en ChatGPT para marcar la conversación actual como "chat destino".
 //               Los demás scripts (Amazon, Temu, etc.) leen esta URL con GM_getValue.
 // @match        https://chatgpt.com/*
@@ -108,28 +108,37 @@
   }
 
   // ── Init ──
+  function ensureUI() {
+    // Si React eliminó nuestro botón, lo re-creamos
+    if (!document.getElementById(BTN_ID)) {
+      createUI();
+    } else {
+      updateUI();
+    }
+  }
+
   function init() {
     createUI();
-    // Re-evalúa al navegar dentro del SPA (debounced para no bloquear)
+    // Re-evalúa al navegar dentro del SPA (debounced)
     let _debounce;
     const mo = new MutationObserver(() => {
       clearTimeout(_debounce);
-      _debounce = setTimeout(updateUI, 300);
+      _debounce = setTimeout(ensureUI, 400);
     });
     mo.observe(document.body, { childList: true, subtree: true });
   }
 
-  // Espera a que la app esté lista
-  if (document.readyState === 'complete') init();
-  else window.addEventListener('load', () => setTimeout(init, 800));
+  // Espera a que la app esté lista — con reintentos
+  if (document.readyState === 'complete') setTimeout(init, 1000);
+  else window.addEventListener('load', () => setTimeout(init, 1500));
 
-  // Navegación SPA: escucha cambios de URL
+  // Navegación SPA: escucha cambios de URL + garantiza que el botón existe
   let lastHref = location.href;
   setInterval(() => {
+    ensureUI();
     if (location.href !== lastHref) {
       lastHref = location.href;
-      updateUI();
     }
-  }, 500);
+  }, 1500);
 })();
 
