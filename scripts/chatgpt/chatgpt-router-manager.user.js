@@ -1,11 +1,13 @@
 // ==UserScript==
 // @name         ChatGPT Router Manager
-// @namespace    https://github.com/user/userscripts
-// @version      1.0.0
+// @namespace    https://github.com/navalon/userscripts
+// @version      1.0.1
 // @description  Botón flotante en ChatGPT para marcar la conversación actual como "chat destino".
 //               Los demás scripts (Amazon, Temu, etc.) leen esta URL con GM_getValue.
 // @match        https://chatgpt.com/*
 // @match        https://chat.openai.com/*
+// @updateURL    https://raw.githubusercontent.com/navalon/userscripts/main/scripts/chatgpt/chatgpt-router-manager.user.js
+// @downloadURL  https://raw.githubusercontent.com/navalon/userscripts/main/scripts/chatgpt/chatgpt-router-manager.user.js
 // @grant        GM_setValue
 // @grant        GM_getValue
 // @grant        GM_addStyle

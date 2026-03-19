@@ -1,10 +1,12 @@
 // ==UserScript==
 // @name         Temu Chat → Abrir ChatGPT (dinámico)
-// @namespace    https://github.com/user/userscripts
-// @version      2.0.0
+// @namespace    https://github.com/navalon/userscripts
+// @version      2.0.1
 // @description  Copia la conversación del chat activo de Temu Seller y abre el chat
 //               destino de ChatGPT configurado con chatgpt-router-manager.
 // @match        https://seller-eu.temu.com/*
+// @updateURL    https://raw.githubusercontent.com/navalon/userscripts/main/scripts/temu/temu-open-chatgpt.user.js
+// @downloadURL  https://raw.githubusercontent.com/navalon/userscripts/main/scripts/temu/temu-open-chatgpt.user.js
 // @grant        GM_setClipboard
 // @grant        GM_getValue
 // @grant        GM_addStyle

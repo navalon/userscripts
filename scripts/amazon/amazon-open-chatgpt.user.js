@@ -1,10 +1,12 @@
 // ==UserScript==
 // @name         Amazon Messaging → Abrir ChatGPT (dinámico)
-// @namespace    https://github.com/user/userscripts
-// @version      2.0.0
+// @namespace    https://github.com/navalon/userscripts
+// @version      2.0.1
 // @description  Copia la conversación del hilo activo de Amazon Messaging y abre el chat
 //               destino de ChatGPT configurado con chatgpt-router-manager.
 // @match        https://sellercentral.amazon.es/messaging*
+// @updateURL    https://raw.githubusercontent.com/navalon/userscripts/main/scripts/amazon/amazon-open-chatgpt.user.js
+// @downloadURL  https://raw.githubusercontent.com/navalon/userscripts/main/scripts/amazon/amazon-open-chatgpt.user.js
 // @grant        GM_setClipboard
 // @grant        GM_getValue
 // @run-at       document-idle
