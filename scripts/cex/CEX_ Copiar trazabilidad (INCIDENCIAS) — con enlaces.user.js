@@ -1,11 +1,13 @@
 // ==UserScript==
 // @name         CEX: Copiar trazabilidad (INCIDENCIAS) — con enlaces
 // @namespace    https://saquitodelasalud.com
-// @version      2.1
+// @version      2.2
 // @description  Copia Detalle del envío, Destinatario, Datos del Envío, Seguimientos, Gestiones y Comunicaciones desde la vista de Incidencias y añade enlaces (Pedido y CEX)
 // @match        https://clientes.correosexpress.com/*/incidencias*
 // @grant        GM_setClipboard
 // @run-at       document-idle
+// @updateURL    https://raw.githubusercontent.com/navalon/userscripts/main/scripts/cex/CEX_%20Copiar%20trazabilidad%20(INCIDENCIAS)%20%E2%80%94%20con%20enlaces.user.js
+// @downloadURL  https://raw.githubusercontent.com/navalon/userscripts/main/scripts/cex/CEX_%20Copiar%20trazabilidad%20(INCIDENCIAS)%20%E2%80%94%20con%20enlaces.user.js
 // ==/UserScript==
 
 (function(){

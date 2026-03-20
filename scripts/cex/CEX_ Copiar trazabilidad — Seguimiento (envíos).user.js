@@ -1,11 +1,13 @@
 // ==UserScript==
 // @name         CEX: Copiar trazabilidad — Seguimiento (envíos)
 // @namespace    https://saquitodelasalud.com
-// @version      2.1
+// @version      2.2
 // @description  Copia Detalle del envío, Destinatario, Datos del Envío, Seguimiento, Gestiones y Comunicaciones en la vista de seguimiento
 // @match        https://clientes.correosexpress.com/*/envios*
 // @grant        GM_setClipboard
 // @run-at       document-idle
+// @updateURL    https://raw.githubusercontent.com/navalon/userscripts/main/scripts/cex/CEX_%20Copiar%20trazabilidad%20%E2%80%94%20Seguimiento%20(env%C3%ADos).user.js
+// @downloadURL  https://raw.githubusercontent.com/navalon/userscripts/main/scripts/cex/CEX_%20Copiar%20trazabilidad%20%E2%80%94%20Seguimiento%20(env%C3%ADos).user.js
 // ==/UserScript==
 
 (function () {
