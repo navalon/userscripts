@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         CEX: Copiar trazabilidad — Unificado
 // @namespace    https://saquitodelasalud.com
-// @version      1.0
+// @version      1.1
 // @description  Extrae toda la trazabilidad de CEX (seguimiento, incidencias, gestiones, comunicaciones) y la copia al portapapeles en texto plano para ChatGPT. Funciona en las vistas de envíos e incidencias.
 // @match        https://clientes.correosexpress.com/*/envios*
 // @match        https://clientes.correosexpress.com/*/envios1*
@@ -74,6 +74,14 @@
     return out;
   }
 
+  // Strip HTML tags to plain text (for embedded email content)
+  function stripHtml(html) {
+    if (!html) return '';
+    const tmp = document.createElement('div');
+    tmp.innerHTML = html.replace(/<br\s*\/?>/gi, '\n').replace(/<\/p>/gi, '\n').replace(/<\/tr>/gi, '\n').replace(/<\/div>/gi, '\n');
+    return (tmp.textContent || '').replace(/[ \t]+/g, ' ').replace(/\n{3,}/g, '\n\n').trim();
+  }
+
   // Extract table rows (Seguimiento / Gestiones)
   function readTable(container) {
     if (!container) return [];
@@ -82,6 +90,39 @@
       qq('tbody tr', t).forEach(tr => {
         const cells = qq('td', tr).map(td => (td.textContent || '').replace(/\s+/g, ' ').trim()).filter(Boolean);
         if (cells.length) out.push('• ' + cells.join(' — '));
+      });
+    });
+    return out;
+  }
+
+  // Extract communications table with hidden modal content
+  function readCommunicationsTable(container) {
+    if (!container) return [];
+    const out = [];
+    qq('table', container).forEach(t => {
+      qq('tbody tr', t).forEach(tr => {
+        if (tr.classList.contains('lfr-template')) return; // skip template rows
+        const tds = qq('td', tr);
+        if (!tds.length) return;
+        // Build row from visible cells, skipping "Ver Información" link text
+        const cells = tds.map(td => {
+          // Check if this cell has a hidden input with communication content
+          const hiddenInput = td.querySelector('input[type="hidden"][id^="informacion"]');
+          if (hiddenInput) return null; // we'll handle content separately
+          return (td.textContent || '').replace(/\s+/g, ' ').trim();
+        }).filter(c => c != null && c !== '');
+
+        // Find the hidden input in any cell
+        const hiddenInput = tr.querySelector('input[type="hidden"][id^="informacion"]');
+        let content = '';
+        if (hiddenInput && hiddenInput.value) {
+          content = stripHtml(hiddenInput.value);
+        }
+
+        if (cells.length) {
+          out.push('• ' + cells.join(' — '));
+          if (content) out.push('  Contenido: ' + content);
+        }
       });
     });
     return out;
@@ -168,7 +209,7 @@
     // ==== COMMON: Comunicaciones del envío (#shippingCommunications) ====
     const scEl = document.getElementById('shippingCommunications');
     if (scEl) {
-      const rows = readTable(scEl);
+      const rows = readCommunicationsTable(scEl);
       if (rows.length) {
         out.push('Comunicaciones del envío:');
         out.push(...rows);
