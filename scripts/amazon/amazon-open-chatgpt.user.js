@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Amazon Messaging → Abrir ChatGPT (dinámico)
 // @namespace    https://github.com/navalon/userscripts
-// @version      2.2.0
+// @version      2.3.0
 // @description  Copia la conversación del hilo activo de Amazon Messaging y abre el chat
 //               destino de ChatGPT configurado con chatgpt-router-manager.
 // @match        https://sellercentral.amazon.es/messaging*
@@ -98,11 +98,33 @@
     });
     out.push('');
 
-    const orderKat = qVisible('kat-link[data-ph-capture-attribute-order-id]', root);
+    // ── Datos del producto (panel lateral .case-context) ──
+    // El panel de contexto es sibling del panel de mensajes, buscar en document
+    const ctxPanel = qVisible('.case-context') || document;
+
+    const orderKat = qVisible('kat-link[data-ph-capture-attribute-order-id]', ctxPanel)
+                  || qVisible('kat-link[data-ph-capture-attribute-order-id]', root);
     const order = orderKat?.getAttribute('label') || orderKat?.getAttribute('data-ph-capture-attribute-order-id');
     if (order) out.push(`📦 Pedido: ${order}`);
 
-    const metaRoot  = qVisible('.context-field-container', root);
+    // Producto
+    const productDetails = qVisible('.case-context-product-details', ctxPanel);
+    if (productDetails) {
+      const titleEl = productDetails.querySelector('kat-link');
+      const title = titleEl?.textContent?.trim();
+      if (title) out.push(`🏷️ Producto: ${title}`);
+
+      const qtyEl = productDetails.querySelector('.case-context-order-quantity');
+      const qty = qtyEl?.textContent?.replace('Cantidad:', '').trim();
+      if (qty) out.push(`📦 Cantidad: ${qty}`);
+
+      const asinEl = productDetails.querySelector('.case-context-asin-id');
+      const asin = asinEl?.textContent?.replace('Id.:', '').trim();
+      if (asin) out.push(`🔖 ASIN: ${asin}`);
+    }
+
+    const metaRoot  = qVisible('.context-field-container', ctxPanel)
+                   || qVisible('.context-field-container', root);
     const metaItems = metaRoot ? qqVisible('.linked-context-field-items', metaRoot) : [];
     if (metaItems.length) {
       out.push('');
