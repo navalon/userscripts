@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MVP1 Bridge — ChatGPT + Amazon + Temu
 // @namespace    https://github.com/navalon/userscripts
-// @version      3.1.0
+// @version      3.2.0
 // @description  Script unificado MVP1: en ChatGPT muestra botón "Usar como destino",
 //               en Amazon/Temu extrae conversación y abre el chat destino. Comparte
 //               almacenamiento GM_setValue entre dominios (mismo script = mismo storage).
@@ -310,16 +310,15 @@
     const b64 = (s) => btoa(unescape(encodeURIComponent(s)));
 
     GM_addStyle(`
-      #tm-temu-copy-btn, #tm-temu-chatgpt-btn {
-        position:fixed;left:16px;z-index:999999;
+      #tm-temu-chatgpt-btn {
+        position:fixed;left:16px;bottom:16px;z-index:999999;
         padding:10px 14px;border-radius:10px;border:0;color:#fff;
         font-weight:600;box-shadow:0 6px 16px rgba(0,0,0,.2);cursor:pointer;
+        background:#10a37f;
       }
-      #tm-temu-copy-btn{bottom:16px;background:#ff6200}
-      #tm-temu-chatgpt-btn{bottom:62px;background:#10a37f}
-      #tm-temu-copy-btn[disabled],#tm-temu-chatgpt-btn[disabled]{opacity:.5;cursor:not-allowed}
+      #tm-temu-chatgpt-btn[disabled]{opacity:.5;cursor:not-allowed}
       .tm-toast{
-        position:fixed;left:50%;bottom:110px;transform:translateX(-50%);
+        position:fixed;left:50%;bottom:70px;transform:translateX(-50%);
         background:rgba(0,0,0,.85);color:#fff;padding:10px 14px;border-radius:8px;
         z-index:999999;font-size:13px;max-width:80vw;text-align:center;
       }
@@ -391,17 +390,6 @@
       return [header, ...lines].join('\n');
     }
 
-    async function copyChat() {
-      try {
-        openFirstChatIfNoneSelected();
-        const sc = qs('#mms-chat-msg-resize-area');
-        if (sc) sc.scrollTop = sc.scrollHeight;
-        await waitForMessages(8000);
-        gmCopy(extractConversation());
-        toast('✅ Conversación copiada');
-      } catch (e) { toast('⚠️ ' + (e?.message || e)); }
-    }
-
     async function openChatGPT() {
       const targetURL = GM_getValue(STORE_KEY, '');
       if (!targetURL) {
@@ -423,17 +411,10 @@
 
     function ensureButtons() {
       if (!qs('#tm-temu-chatgpt-btn')) {
-        const btn2 = document.createElement('button');
-        btn2.id = 'tm-temu-chatgpt-btn'; btn2.type = 'button';
-        btn2.textContent = 'Abrir en ChatGPT';
-        btn2.addEventListener('click', openChatGPT);
-        document.body.appendChild(btn2);
-      }
-      if (!qs('#tm-temu-copy-btn')) {
         const btn = document.createElement('button');
-        btn.id = 'tm-temu-copy-btn'; btn.type = 'button';
-        btn.textContent = 'Copiar chat';
-        btn.addEventListener('click', copyChat);
+        btn.id = 'tm-temu-chatgpt-btn'; btn.type = 'button';
+        btn.textContent = '🤖 Abrir en ChatGPT';
+        btn.addEventListener('click', openChatGPT);
         document.body.appendChild(btn);
       }
     }
@@ -441,8 +422,7 @@
     document.addEventListener('click', (e) => {
       if (e.target.closest('div[data-index] ._3OURwMjG')) {
         setTimeout(() => {
-          const b1 = qs('#tm-temu-copy-btn'); if (b1) b1.disabled = false;
-          const b2 = qs('#tm-temu-chatgpt-btn'); if (b2) b2.disabled = false;
+          const b = qs('#tm-temu-chatgpt-btn'); if (b) b.disabled = false;
         }, 300);
       }
     }, true);
