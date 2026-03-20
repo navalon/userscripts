@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         CEX: Copiar trazabilidad — Seguimiento (envíos)
 // @namespace    https://saquitodelasalud.com
-// @version      2.0
+// @version      2.1
 // @description  Copia Detalle del envío, Destinatario, Datos del Envío, Seguimiento, Gestiones y Comunicaciones en la vista de seguimiento
 // @match        https://clientes.correosexpress.com/*/envios*
 // @grant        GM_setClipboard
@@ -179,9 +179,21 @@
     const gest = extractGeneric(root, [/gestiones?/i,/acciones/i,/intervenc/i]);
     if (gest.length){ out.push('Gestiones:'); out.push(...gest); out.push(''); }
 
-    // Comunicaciones
+    // Comunicaciones (por título)
     const comm = extractGeneric(root, [/comunicaci[oó]n/i,/comunicacion/i,/mensaj/i,/contacto/i]);
     if (comm.length){ out.push('Comunicaciones:'); out.push(...comm); out.push(''); }
+
+    // Comunicaciones del envío (#shippingCommunications)
+    const scEl = q('#shippingCommunications', root) || document.getElementById('shippingCommunications');
+    if (scEl) {
+      let scLines = extractRows(scEl);
+      if (!scLines.length) scLines = extractPairs(scEl);
+      if (!scLines.length) {
+        const raw = T(scEl);
+        if (raw) scLines = raw.split(/\n+/).map(l => l.trim()).filter(Boolean).map(l => '• ' + l);
+      }
+      if (scLines.length) { out.push('Comunicaciones del envío:'); out.push(...scLines); out.push(''); }
+    }
 
     if (!out.join('').trim()) out.push('No se pudo localizar ninguna sección reconocible.');
     return out.join('\n').replace(/\n{3,}/g,'\n\n').trim();

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         CEX: Copiar trazabilidad (INCIDENCIAS) — con enlaces
 // @namespace    https://saquitodelasalud.com
-// @version      2.0
+// @version      2.1
 // @description  Copia Detalle del envío, Destinatario, Datos del Envío, Seguimientos, Gestiones y Comunicaciones desde la vista de Incidencias y añade enlaces (Pedido y CEX)
 // @match        https://clientes.correosexpress.com/*/incidencias*
 // @grant        GM_setClipboard
@@ -183,6 +183,18 @@
 
     const com = byTitle(root, [/comunicaci[oó]n/i,/mensaj/i], 'rows');
     if(com.length){ out.push('Comunicaciones:'); out.push(...com); out.push(''); }
+
+    // Comunicaciones del envío (#shippingCommunications)
+    const scEl = q('#shippingCommunications', root) || document.getElementById('shippingCommunications');
+    if (scEl) {
+      let scLines = extractRows(scEl);
+      if (!scLines.length) scLines = extractPairs(scEl);
+      if (!scLines.length) {
+        const raw = T(scEl);
+        if (raw) scLines = raw.split(/\n+/).map(l => l.trim()).filter(Boolean).map(l => '• ' + l);
+      }
+      if (scLines.length) { out.push('Comunicaciones del envío:'); out.push(...scLines); out.push(''); }
+    }
 
     if(ship || ref){
       out.push('Enlaces:');
