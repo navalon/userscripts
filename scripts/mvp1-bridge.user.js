@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MVP1 Bridge — ChatGPT + Amazon + Temu
 // @namespace    https://github.com/navalon/userscripts
-// @version      3.0.1
+// @version      3.1.0
 // @description  Script unificado MVP1: en ChatGPT muestra botón "Usar como destino",
 //               en Amazon/Temu extrae conversación y abre el chat destino. Comparte
 //               almacenamiento GM_setValue entre dominios (mismo script = mismo storage).
@@ -145,6 +145,56 @@
         ensureUI();
       }
     }, 1500);
+
+    // ── Auto-paste: si llegamos con #from=amazon/temu&payload=... ──
+    function tryAutoPaste() {
+      const hash = location.hash;
+      if (!hash || !hash.includes('from=')) return;
+      const params = new URLSearchParams(hash.slice(1));
+      const from = params.get('from');
+      const payloadB64 = params.get('payload');
+      if (!from || !payloadB64) return;
+
+      // Decodificar payload (base64 → texto)
+      let text;
+      try {
+        text = decodeURIComponent(escape(atob(decodeURIComponent(payloadB64))));
+      } catch (e) {
+        console.warn('[MVP1 Bridge] Error decodificando payload:', e);
+        return;
+      }
+      if (!text) return;
+
+      // Limpiar el hash para que no se re-pegue
+      history.replaceState(null, '', location.pathname);
+
+      // Esperar a que el editor ProseMirror esté listo y pegar
+      const maxAttempts = 30;
+      let attempts = 0;
+      const tryPaste = setInterval(() => {
+        attempts++;
+        const editor = document.querySelector('#prompt-textarea, [contenteditable="true"].ProseMirror, div[contenteditable="true"]');
+        if (editor) {
+          clearInterval(tryPaste);
+          // ProseMirror: insertar como párrafos
+          editor.focus();
+          const lines = text.split('\n');
+          editor.innerHTML = lines.map(l => `<p>${l || '<br>'}</p>`).join('');
+          // Disparar evento input para que React lo detecte
+          editor.dispatchEvent(new Event('input', { bubbles: true }));
+          // Feedback visual
+          const toast = document.createElement('div');
+          toast.textContent = `✅ Conversación de ${from === 'amazon' ? 'Amazon' : 'Temu'} pegada (${lines.length} líneas)`;
+          toast.style.cssText = 'position:fixed;top:16px;left:50%;transform:translateX(-50%);background:#10a37f;color:#fff;padding:10px 16px;border-radius:8px;z-index:999999;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.3);';
+          document.body.appendChild(toast);
+          setTimeout(() => toast.remove(), 3000);
+        }
+        if (attempts >= maxAttempts) clearInterval(tryPaste);
+      }, 500);
+    }
+
+    // Ejecutar auto-paste tras un breve delay para que la SPA cargue
+    setTimeout(tryAutoPaste, 2000);
   }
 
   // ═══════════════════════════════════════════════
