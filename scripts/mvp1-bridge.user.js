@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MVP1 Bridge — ChatGPT + Amazon + Temu
 // @namespace    https://github.com/navalon/userscripts
-// @version      3.0.0
+// @version      3.0.1
 // @description  Script unificado MVP1: en ChatGPT muestra botón "Usar como destino",
 //               en Amazon/Temu extrae conversación y abre el chat destino. Comparte
 //               almacenamiento GM_setValue entre dominios (mismo script = mismo storage).
@@ -65,29 +65,39 @@
       return null;
     }
 
-    let _updating = false;
+    let _skip = false; // evita que el observer re-dispare al cambiar el DOM nosotros
+
     function updateUI() {
-      if (_updating) return;
-      _updating = true;
       const btn = document.getElementById(BTN_ID);
       const badge = document.getElementById(BADGE_ID);
-      if (!btn) { _updating = false; return; }
+      if (!btn) return;
       const stored = GM_getValue(STORE_KEY, '');
       const current = currentConvURL();
       const active = stored && current && stored === current;
-      btn.classList.toggle('is-active', active);
-      btn.textContent = active ? '✅ Este chat es el destino' : '🎯 Usar este chat como destino';
-      btn.disabled = !current;
+      const newText = active ? '✅ Este chat es el destino' : '🎯 Usar este chat como destino';
+      // Solo tocar el DOM si algo cambió (evita bucle con MutationObserver)
+      if (btn.textContent !== newText) {
+        _skip = true;
+        btn.classList.toggle('is-active', active);
+        btn.textContent = newText;
+        btn.disabled = !current;
+        _skip = false;
+      }
       if (badge) {
-        badge.textContent = stored
+        const badgeText = stored
           ? `Destino actual: ${stored.replace(/https:\/\/chatgpt\.com/, '')}`
           : 'Sin destino configurado';
+        if (badge.textContent !== badgeText) {
+          _skip = true;
+          badge.textContent = badgeText;
+          _skip = false;
+        }
       }
-      _updating = false;
     }
 
     function createUI() {
       if (document.getElementById(BTN_ID)) { updateUI(); return; }
+      _skip = true;
       const badge = document.createElement('div');
       badge.id = BADGE_ID;
       document.body.appendChild(badge);
@@ -99,11 +109,13 @@
         const url = currentConvURL();
         if (!url) return;
         GM_setValue(STORE_KEY, url);
-        updateUI();
+        _skip = true;
         btn.textContent = '📋 URL guardada!';
+        _skip = false;
         setTimeout(() => updateUI(), 1800);
       });
       document.body.appendChild(btn);
+      _skip = false;
       updateUI();
     }
 
@@ -115,14 +127,24 @@
     function init() {
       createUI();
       let _d;
-      const mo = new MutationObserver(() => { clearTimeout(_d); _d = setTimeout(ensureUI, 400); });
+      const mo = new MutationObserver(() => {
+        if (_skip) return;
+        clearTimeout(_d);
+        _d = setTimeout(ensureUI, 500);
+      });
       mo.observe(document.body, { childList: true, subtree: true });
     }
 
     if (document.readyState === 'complete') setTimeout(init, 1000);
     else window.addEventListener('load', () => setTimeout(init, 1500));
+    // Solo comprueba si cambió la URL (navegación SPA), no re-renderiza si no hace falta
     let lastHref = location.href;
-    setInterval(() => { ensureUI(); if (location.href !== lastHref) lastHref = location.href; }, 1500);
+    setInterval(() => {
+      if (location.href !== lastHref) {
+        lastHref = location.href;
+        ensureUI();
+      }
+    }, 1500);
   }
 
   // ═══════════════════════════════════════════════
