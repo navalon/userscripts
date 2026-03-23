@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Amazon Messaging → Abrir ChatGPT (dinámico)
 // @namespace    https://github.com/navalon/userscripts
-// @version      2.3.0
+// @version      2.4.0
 // @description  Copia la conversación del hilo activo de Amazon Messaging y abre el chat
 //               destino de ChatGPT configurado con chatgpt-router-manager.
 // @match        https://sellercentral.amazon.es/messaging*
@@ -98,6 +98,11 @@
     });
     out.push('');
 
+    // ── Tema del caso ──
+    const topicDropdown = document.querySelector('.case-topic-name');
+    const topic = topicDropdown?.getAttribute('placeholder') || '';
+    if (topic) out.push(`📌 Tema: ${topic}`);
+
     // ── Datos del producto (panel lateral .case-context) ──
     // El panel de contexto es sibling del panel de mensajes, buscar en document
     const ctxPanel = qVisible('.case-context') || document;
@@ -112,7 +117,9 @@
     if (productDetails) {
       const titleEl = productDetails.querySelector('kat-link');
       const title = titleEl?.textContent?.trim();
+      const productUrl = titleEl?.getAttribute('href') || '';
       if (title) out.push(`🏷️ Producto: ${title}`);
+      if (productUrl) out.push(`🔗 URL producto: ${productUrl}`);
 
       const qtyEl = productDetails.querySelector('.case-context-order-quantity');
       const qty = qtyEl?.textContent?.replace('Cantidad:', '').trim();
