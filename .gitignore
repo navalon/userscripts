@@ -13,6 +13,10 @@ node_modules/
 *.zip
 backup-extracted/
 
+# Datos privados de Tampermonkey por script (no subir nunca)
+*.options.json
+*.storage.json
+
 # Brief original (contexto, no código)
 userscripts-brief-augment.md
 
