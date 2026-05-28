@@ -7,6 +7,8 @@
 // @match        https://clientes.correosexpress.com/*/envios1*
 // @grant        none
 // @run-at       document-idle
+// @updateURL    https://raw.githubusercontent.com/navalon/userscripts/main/scripts/cex/CEX_%20Copiar%20direcci%C3%B3n%20de%20oficina%20%28BD%20interna%20%2B%20remota%20%2B%20cache%29.user.js
+// @downloadURL  https://raw.githubusercontent.com/navalon/userscripts/main/scripts/cex/CEX_%20Copiar%20direcci%C3%B3n%20de%20oficina%20%28BD%20interna%20%2B%20remota%20%2B%20cache%29.user.js
 // ==/UserScript==
 
 (function () {

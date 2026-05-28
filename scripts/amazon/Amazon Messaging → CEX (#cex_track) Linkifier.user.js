@@ -6,6 +6,8 @@
 // @match        https://sellercentral.amazon.es/messaging*
 // @grant        none
 // @run-at       document-idle
+// @updateURL    https://raw.githubusercontent.com/navalon/userscripts/main/scripts/amazon/Amazon%20Messaging%20%E2%86%92%20CEX%20%28%23cex_track%29%20Linkifier.user.js
+// @downloadURL  https://raw.githubusercontent.com/navalon/userscripts/main/scripts/amazon/Amazon%20Messaging%20%E2%86%92%20CEX%20%28%23cex_track%29%20Linkifier.user.js
 // ==/UserScript==
 
 (function () {

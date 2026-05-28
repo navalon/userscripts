@@ -6,6 +6,8 @@
 // @match        https://sellercentral.amazon.es/messaging*
 // @grant        GM_setClipboard
 // @run-at       document-idle
+// @updateURL    https://raw.githubusercontent.com/navalon/userscripts/main/scripts/amazon/Amazon%20Messaging%20-%20Copiar%20%2B%20Abrir%20ChatGPT%20%28visible-only%29.user.js
+// @downloadURL  https://raw.githubusercontent.com/navalon/userscripts/main/scripts/amazon/Amazon%20Messaging%20-%20Copiar%20%2B%20Abrir%20ChatGPT%20%28visible-only%29.user.js
 // ==/UserScript==
 
 (function () {

@@ -6,6 +6,8 @@
 // @author       You
 // @match        https://*/wp-admin/admin.php?page=correosexpress-utilidades
 // @grant        none
+// @updateURL    https://raw.githubusercontent.com/navalon/userscripts/main/scripts/woocommerce/Set%20date%2C%20search%2C%20set%20selector%20to%20100%20and%20check%20checkboxes%20%28artsans%29.user.js
+// @downloadURL  https://raw.githubusercontent.com/navalon/userscripts/main/scripts/woocommerce/Set%20date%2C%20search%2C%20set%20selector%20to%20100%20and%20check%20checkboxes%20%28artsans%29.user.js
 // ==/UserScript==
 
 (function() {

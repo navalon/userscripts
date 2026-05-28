@@ -6,6 +6,8 @@
 // @match        https://sellercentral.amazon.es/fba/sendtoamazon/enter_tracking_details_step*
 // @run-at       document-idle
 // @grant        GM_setClipboard
+// @updateURL    https://raw.githubusercontent.com/navalon/userscripts/main/scripts/amazon/Amazon%20-%20Copiar%20trackings%20UPS%20%281ZK%29.user.js
+// @downloadURL  https://raw.githubusercontent.com/navalon/userscripts/main/scripts/amazon/Amazon%20-%20Copiar%20trackings%20UPS%20%281ZK%29.user.js
 // ==/UserScript==
 
 (function () {

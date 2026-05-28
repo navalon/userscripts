@@ -9,6 +9,8 @@
 // @match        https://saquitodelasalud.com/*
 // @grant        none
 // @run-at       document-idle
+// @updateURL    https://raw.githubusercontent.com/navalon/userscripts/main/scripts/shared/Linkify%20Orders%20%28Amazon%2C%20Temu%2C%20Artsans%2C%20Saquito%29%20-%20Safe%20SPA.user.js
+// @downloadURL  https://raw.githubusercontent.com/navalon/userscripts/main/scripts/shared/Linkify%20Orders%20%28Amazon%2C%20Temu%2C%20Artsans%2C%20Saquito%29%20-%20Safe%20SPA.user.js
 // ==/UserScript==
 
 (function () {

@@ -6,6 +6,8 @@
 // @match        https://sellercentral.amazon.es/tax/seller-fee-invoices*
 // @grant        none
 // @run-at       document-idle
+// @updateURL    https://raw.githubusercontent.com/navalon/userscripts/main/scripts/amazon/Amazon%20Seller%20Central%20-%20Marcar%20botones%20_Ver_%20%28cambia%20color%20al%20clicar%29.user.js
+// @downloadURL  https://raw.githubusercontent.com/navalon/userscripts/main/scripts/amazon/Amazon%20Seller%20Central%20-%20Marcar%20botones%20_Ver_%20%28cambia%20color%20al%20clicar%29.user.js
 // ==/UserScript==
 
 (function () {

@@ -6,6 +6,8 @@
 // @match        https://mail.google.com/*
 // @grant        none
 // @run-at       document-idle
+// @updateURL    https://raw.githubusercontent.com/navalon/userscripts/main/scripts/otros/Gmail_%20Linkear%20Albar%C3%A1n%20CEX%20%28hilos%20y%20vi%C3%B1etas%29.user.js
+// @downloadURL  https://raw.githubusercontent.com/navalon/userscripts/main/scripts/otros/Gmail_%20Linkear%20Albar%C3%A1n%20CEX%20%28hilos%20y%20vi%C3%B1etas%29.user.js
 // ==/UserScript==
 
 (function () {

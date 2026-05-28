@@ -6,6 +6,9 @@
 // @match       https://www.artsans.es/wp-admin/post.php*
 // @run-at      document-end
 // @grant       none
+// @version      1.0
+// @updateURL    https://raw.githubusercontent.com/navalon/userscripts/main/scripts/cex/CEX_%20Barra%20sticky%20con%20acciones%20y%20seguimiento.user.js
+// @downloadURL  https://raw.githubusercontent.com/navalon/userscripts/main/scripts/cex/CEX_%20Barra%20sticky%20con%20acciones%20y%20seguimiento.user.js
 // ==/UserScript==
 (function () {
   'use strict';

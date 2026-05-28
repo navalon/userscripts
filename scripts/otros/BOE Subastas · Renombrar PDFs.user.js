@@ -6,6 +6,8 @@
 // @match        https://subastas.boe.es/detalleSubasta.php*
 // @grant        GM_download
 // @connect      subastas.boe.es
+// @updateURL    https://raw.githubusercontent.com/navalon/userscripts/main/scripts/otros/BOE%20Subastas%20%C2%B7%20Renombrar%20PDFs.user.js
+// @downloadURL  https://raw.githubusercontent.com/navalon/userscripts/main/scripts/otros/BOE%20Subastas%20%C2%B7%20Renombrar%20PDFs.user.js
 // ==/UserScript==
 
 (function () {

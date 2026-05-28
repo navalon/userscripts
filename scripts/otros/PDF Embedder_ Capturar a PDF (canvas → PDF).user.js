@@ -6,6 +6,8 @@
 // @match        *://*/*
 // @run-at       document-idle
 // @grant        none
+// @updateURL    https://raw.githubusercontent.com/navalon/userscripts/main/scripts/otros/PDF%20Embedder_%20Capturar%20a%20PDF%20%28canvas%20%E2%86%92%20PDF%29.user.js
+// @downloadURL  https://raw.githubusercontent.com/navalon/userscripts/main/scripts/otros/PDF%20Embedder_%20Capturar%20a%20PDF%20%28canvas%20%E2%86%92%20PDF%29.user.js
 // ==/UserScript==
 
 (function () {

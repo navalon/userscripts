@@ -6,6 +6,8 @@
 // @match        https://clientes.correosexpress.com/*/envios*
 // @grant        none
 // @run-at       document-idle
+// @updateURL    https://raw.githubusercontent.com/navalon/userscripts/main/scripts/cex/CEX_%20Bot%C3%B3n%20Temu%20en%20Seguimiento%20%28-envios%29.user.js
+// @downloadURL  https://raw.githubusercontent.com/navalon/userscripts/main/scripts/cex/CEX_%20Bot%C3%B3n%20Temu%20en%20Seguimiento%20%28-envios%29.user.js
 // ==/UserScript==
 
 (function () {

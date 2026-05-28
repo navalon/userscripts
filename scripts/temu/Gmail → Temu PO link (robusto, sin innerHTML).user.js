@@ -6,6 +6,8 @@
 // @match        https://mail.google.com/mail/*
 // @grant        none
 // @run-at       document-idle
+// @updateURL    https://raw.githubusercontent.com/navalon/userscripts/main/scripts/temu/Gmail%20%E2%86%92%20Temu%20PO%20link%20%28robusto%2C%20sin%20innerHTML%29.user.js
+// @downloadURL  https://raw.githubusercontent.com/navalon/userscripts/main/scripts/temu/Gmail%20%E2%86%92%20Temu%20PO%20link%20%28robusto%2C%20sin%20innerHTML%29.user.js
 // ==/UserScript==
 
 (function () {

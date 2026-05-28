@@ -7,6 +7,8 @@
 // @match        https://clientes.correosexpress.com/*/envios1*
 // @grant        none
 // @run-at       document-idle
+// @updateURL    https://raw.githubusercontent.com/navalon/userscripts/main/scripts/cex/CEX_%20Dock%20flotante%20unificado%20%2B%20POD%20descargador%20%28Woo-Amazon-AliExpress-Temu-WA%29.user.js
+// @downloadURL  https://raw.githubusercontent.com/navalon/userscripts/main/scripts/cex/CEX_%20Dock%20flotante%20unificado%20%2B%20POD%20descargador%20%28Woo-Amazon-AliExpress-Temu-WA%29.user.js
 // ==/UserScript==
 
 (function(){

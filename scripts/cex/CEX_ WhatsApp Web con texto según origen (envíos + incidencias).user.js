@@ -7,6 +7,8 @@
 // @match        https://clientes.correosexpress.com/*/envios1*
 // @grant        none
 // @run-at       document-idle
+// @updateURL    https://raw.githubusercontent.com/navalon/userscripts/main/scripts/cex/CEX_%20WhatsApp%20Web%20con%20texto%20seg%C3%BAn%20origen%20%28env%C3%ADos%20%2B%20incidencias%29.user.js
+// @downloadURL  https://raw.githubusercontent.com/navalon/userscripts/main/scripts/cex/CEX_%20WhatsApp%20Web%20con%20texto%20seg%C3%BAn%20origen%20%28env%C3%ADos%20%2B%20incidencias%29.user.js
 // ==/UserScript==
 
 (function () {

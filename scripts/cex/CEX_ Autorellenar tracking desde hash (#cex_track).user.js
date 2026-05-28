@@ -7,6 +7,8 @@
 // @match        https://clientes.correosexpress.com/group/correosexpress/envios*
 // @grant        none
 // @run-at       document-idle
+// @updateURL    https://raw.githubusercontent.com/navalon/userscripts/main/scripts/cex/CEX_%20Autorellenar%20tracking%20desde%20hash%20%28%23cex_track%29.user.js
+// @downloadURL  https://raw.githubusercontent.com/navalon/userscripts/main/scripts/cex/CEX_%20Autorellenar%20tracking%20desde%20hash%20%28%23cex_track%29.user.js
 // ==/UserScript==
 
 (function () {

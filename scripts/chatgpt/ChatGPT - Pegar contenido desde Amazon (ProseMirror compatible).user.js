@@ -7,6 +7,8 @@
 // @match        https://chat.openai.com/c/*
 // @grant        none
 // @run-at       document-idle
+// @updateURL    https://raw.githubusercontent.com/navalon/userscripts/main/scripts/chatgpt/ChatGPT%20-%20Pegar%20contenido%20desde%20Amazon%20%28ProseMirror%20compatible%29.user.js
+// @downloadURL  https://raw.githubusercontent.com/navalon/userscripts/main/scripts/chatgpt/ChatGPT%20-%20Pegar%20contenido%20desde%20Amazon%20%28ProseMirror%20compatible%29.user.js
 // ==/UserScript==
 
 (function () {

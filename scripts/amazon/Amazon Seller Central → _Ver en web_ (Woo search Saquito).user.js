@@ -6,6 +6,8 @@
 // @match        https://sellercentral.amazon.es/orders-v3/order/*
 // @grant        none
 // @run-at       document-idle
+// @updateURL    https://raw.githubusercontent.com/navalon/userscripts/main/scripts/amazon/Amazon%20Seller%20Central%20%E2%86%92%20_Ver%20en%20web_%20%28Woo%20search%20Saquito%29.user.js
+// @downloadURL  https://raw.githubusercontent.com/navalon/userscripts/main/scripts/amazon/Amazon%20Seller%20Central%20%E2%86%92%20_Ver%20en%20web_%20%28Woo%20search%20Saquito%29.user.js
 // ==/UserScript==
 
 (function () {

@@ -6,6 +6,8 @@
 // @match        https://seller-eu.temu.com/return-refund-list.html*
 // @grant        none
 // @run-at       document-idle
+// @updateURL    https://raw.githubusercontent.com/navalon/userscripts/main/scripts/temu/Temu%20%E2%86%92%20Artsans%20%28link%20en%20panel%20derecho%2C%20sin%20mover%20layout%29.user.js
+// @downloadURL  https://raw.githubusercontent.com/navalon/userscripts/main/scripts/temu/Temu%20%E2%86%92%20Artsans%20%28link%20en%20panel%20derecho%2C%20sin%20mover%20layout%29.user.js
 // ==/UserScript==
 
 (function () {

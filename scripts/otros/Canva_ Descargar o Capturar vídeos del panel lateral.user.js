@@ -6,6 +6,8 @@
 // @match        https://www.canva.com/*
 // @run-at       document-start
 // @grant        none
+// @updateURL    https://raw.githubusercontent.com/navalon/userscripts/main/scripts/otros/Canva_%20Descargar%20o%20Capturar%20v%C3%ADdeos%20del%20panel%20lateral.user.js
+// @downloadURL  https://raw.githubusercontent.com/navalon/userscripts/main/scripts/otros/Canva_%20Descargar%20o%20Capturar%20v%C3%ADdeos%20del%20panel%20lateral.user.js
 // ==/UserScript==
 
 (function () {

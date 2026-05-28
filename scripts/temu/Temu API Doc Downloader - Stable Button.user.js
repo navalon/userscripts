@@ -6,6 +6,8 @@
 // @match        https://partner-eu.temu.com/documentation*
 // @grant        none
 // @run-at       document-start
+// @updateURL    https://raw.githubusercontent.com/navalon/userscripts/main/scripts/temu/Temu%20API%20Doc%20Downloader%20-%20Stable%20Button.user.js
+// @downloadURL  https://raw.githubusercontent.com/navalon/userscripts/main/scripts/temu/Temu%20API%20Doc%20Downloader%20-%20Stable%20Button.user.js
 // ==/UserScript==
 
 (function() {

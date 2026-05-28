@@ -7,6 +7,8 @@
 // @match        https://artsans.es/*
 // @grant        none
 // @run-at       document-idle
+// @updateURL    https://raw.githubusercontent.com/navalon/userscripts/main/scripts/cex/CEX%20tools_%20linkify%20%2B%20bot%C3%B3n%20_Env%C3%ADo%20Correos_%20%28Amazon%20metabox%29.user.js
+// @downloadURL  https://raw.githubusercontent.com/navalon/userscripts/main/scripts/cex/CEX%20tools_%20linkify%20%2B%20bot%C3%B3n%20_Env%C3%ADo%20Correos_%20%28Amazon%20metabox%29.user.js
 // ==/UserScript==
 
 (function () {

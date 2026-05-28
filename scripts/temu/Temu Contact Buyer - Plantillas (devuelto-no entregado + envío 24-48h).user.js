@@ -6,6 +6,8 @@
 // @match        https://seller-eu.temu.com/contact-buyer.html*
 // @grant        none
 // @run-at       document-idle
+// @updateURL    https://raw.githubusercontent.com/navalon/userscripts/main/scripts/temu/Temu%20Contact%20Buyer%20-%20Plantillas%20%28devuelto-no%20entregado%20%2B%20env%C3%ADo%2024-48h%29.user.js
+// @downloadURL  https://raw.githubusercontent.com/navalon/userscripts/main/scripts/temu/Temu%20Contact%20Buyer%20-%20Plantillas%20%28devuelto-no%20entregado%20%2B%20env%C3%ADo%2024-48h%29.user.js
 // ==/UserScript==
 
 (function () {

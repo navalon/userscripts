@@ -6,6 +6,8 @@
 // @match        https://www.canva.com/design/*/editor*
 // @run-at       document-start
 // @grant        none
+// @updateURL    https://raw.githubusercontent.com/navalon/userscripts/main/scripts/otros/Canva%20Editor_%20Descargar-Capturar%20v%C3%ADdeo%20seleccionado.user.js
+// @downloadURL  https://raw.githubusercontent.com/navalon/userscripts/main/scripts/otros/Canva%20Editor_%20Descargar-Capturar%20v%C3%ADdeo%20seleccionado.user.js
 // ==/UserScript==
 
 (function () {

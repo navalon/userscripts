@@ -9,6 +9,8 @@
 // @match        https://*.saquitodelasalud.com/*
 // @grant        none
 // @run-at       document-idle
+// @updateURL    https://raw.githubusercontent.com/navalon/userscripts/main/scripts/amazon/Amazon%20Order%20IDs%20%E2%86%92%20Enlace%20a%20Seller%20Central%20%28Gmail%20%2B%20CEX%20%2B%20saquitodelasalud%29.user.js
+// @downloadURL  https://raw.githubusercontent.com/navalon/userscripts/main/scripts/amazon/Amazon%20Order%20IDs%20%E2%86%92%20Enlace%20a%20Seller%20Central%20%28Gmail%20%2B%20CEX%20%2B%20saquitodelasalud%29.user.js
 // ==/UserScript==
 
 (function () {

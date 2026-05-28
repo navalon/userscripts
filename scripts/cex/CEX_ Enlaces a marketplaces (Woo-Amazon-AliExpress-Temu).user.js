@@ -7,6 +7,8 @@
 // @match        https://clientes.correosexpress.com/*/envios1*
 // @grant        none
 // @run-at       document-idle
+// @updateURL    https://raw.githubusercontent.com/navalon/userscripts/main/scripts/cex/CEX_%20Enlaces%20a%20marketplaces%20%28Woo-Amazon-AliExpress-Temu%29.user.js
+// @downloadURL  https://raw.githubusercontent.com/navalon/userscripts/main/scripts/cex/CEX_%20Enlaces%20a%20marketplaces%20%28Woo-Amazon-AliExpress-Temu%29.user.js
 // ==/UserScript==
 
 (function () {

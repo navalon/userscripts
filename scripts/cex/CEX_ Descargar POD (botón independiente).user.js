@@ -5,6 +5,8 @@
 // @match        https://clientes.correosexpress.com/*/envios*
 // @grant        none
 // @run-at       document-idle
+// @updateURL    https://raw.githubusercontent.com/navalon/userscripts/main/scripts/cex/CEX_%20Descargar%20POD%20%28bot%C3%B3n%20independiente%29.user.js
+// @downloadURL  https://raw.githubusercontent.com/navalon/userscripts/main/scripts/cex/CEX_%20Descargar%20POD%20%28bot%C3%B3n%20independiente%29.user.js
 // ==/UserScript==
 
 (function () {

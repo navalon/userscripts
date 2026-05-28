@@ -6,6 +6,8 @@
 // @match        https://www.idealista.com/inmueble/*
 // @run-at       document-end
 // @grant        none
+// @updateURL    https://raw.githubusercontent.com/navalon/userscripts/main/scripts/otros/Idealista%20-%20Top%20bar%20%2B%20hist%C3%B3rico%20%2B%20se%C3%B1al%20por%20percentil%20%28Lazy%20stats%20FIX%20v0.7%29.user.js
+// @downloadURL  https://raw.githubusercontent.com/navalon/userscripts/main/scripts/otros/Idealista%20-%20Top%20bar%20%2B%20hist%C3%B3rico%20%2B%20se%C3%B1al%20por%20percentil%20%28Lazy%20stats%20FIX%20v0.7%29.user.js
 // ==/UserScript==
 
 (() => {

@@ -8,6 +8,8 @@
 // @match        https://web.whatsapp.com/*
 // @grant        none
 // @run-at       document-idle
+// @updateURL    https://raw.githubusercontent.com/navalon/userscripts/main/scripts/temu/Linkificar%20pedidos%20Temu%20%E2%86%92%20Seller%20%28Observaciones%20fijo%29.user.js
+// @downloadURL  https://raw.githubusercontent.com/navalon/userscripts/main/scripts/temu/Linkificar%20pedidos%20Temu%20%E2%86%92%20Seller%20%28Observaciones%20fijo%29.user.js
 // ==/UserScript==
 
 (function () {

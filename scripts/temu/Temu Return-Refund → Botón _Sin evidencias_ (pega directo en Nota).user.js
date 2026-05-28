@@ -6,6 +6,8 @@
 // @match        https://seller-eu.temu.com/return-refund-list.html*
 // @grant        none
 // @run-at       document-idle
+// @updateURL    https://raw.githubusercontent.com/navalon/userscripts/main/scripts/temu/Temu%20Return-Refund%20%E2%86%92%20Bot%C3%B3n%20_Sin%20evidencias_%20%28pega%20directo%20en%20Nota%29.user.js
+// @downloadURL  https://raw.githubusercontent.com/navalon/userscripts/main/scripts/temu/Temu%20Return-Refund%20%E2%86%92%20Bot%C3%B3n%20_Sin%20evidencias_%20%28pega%20directo%20en%20Nota%29.user.js
 // ==/UserScript==
 
 (function () {

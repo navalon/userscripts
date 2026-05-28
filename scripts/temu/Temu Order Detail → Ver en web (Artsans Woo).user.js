@@ -6,6 +6,8 @@
 // @match        https://seller-eu.temu.com/order-detail.html*
 // @grant        none
 // @run-at       document-idle
+// @updateURL    https://raw.githubusercontent.com/navalon/userscripts/main/scripts/temu/Temu%20Order%20Detail%20%E2%86%92%20Ver%20en%20web%20%28Artsans%20Woo%29.user.js
+// @downloadURL  https://raw.githubusercontent.com/navalon/userscripts/main/scripts/temu/Temu%20Order%20Detail%20%E2%86%92%20Ver%20en%20web%20%28Artsans%20Woo%29.user.js
 // ==/UserScript==
 
 (function () {

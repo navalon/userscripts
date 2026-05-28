@@ -9,6 +9,8 @@
 // @grant        GM_setClipboard
 // @grant        GM_addStyle
 // @grant        GM_notification
+// @updateURL    https://raw.githubusercontent.com/navalon/userscripts/main/scripts/temu/Temu%20Chat%20Export%20%2B%20Abrir%20en%20ChatGPT.user.js
+// @downloadURL  https://raw.githubusercontent.com/navalon/userscripts/main/scripts/temu/Temu%20Chat%20Export%20%2B%20Abrir%20en%20ChatGPT.user.js
 // ==/UserScript==
 
 (function() {

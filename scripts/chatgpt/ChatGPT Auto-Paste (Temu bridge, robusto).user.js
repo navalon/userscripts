@@ -7,6 +7,8 @@
 // @match        https://chat.openai.com/c/*
 // @run-at       document-start
 // @grant        none
+// @updateURL    https://raw.githubusercontent.com/navalon/userscripts/main/scripts/chatgpt/ChatGPT%20Auto-Paste%20%28Temu%20bridge%2C%20robusto%29.user.js
+// @downloadURL  https://raw.githubusercontent.com/navalon/userscripts/main/scripts/chatgpt/ChatGPT%20Auto-Paste%20%28Temu%20bridge%2C%20robusto%29.user.js
 // ==/UserScript==
 
 (function() {

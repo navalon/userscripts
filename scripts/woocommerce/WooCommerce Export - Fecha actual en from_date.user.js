@@ -6,6 +6,8 @@
 // @author       Tú
 // @match        https://artsans.es/wp-admin/admin.php?page=wc-order-export&tab=profiles&wc_oe=edit_profile&profile_id=2*
 // @grant        none
+// @updateURL    https://raw.githubusercontent.com/navalon/userscripts/main/scripts/woocommerce/WooCommerce%20Export%20-%20Fecha%20actual%20en%20from_date.user.js
+// @downloadURL  https://raw.githubusercontent.com/navalon/userscripts/main/scripts/woocommerce/WooCommerce%20Export%20-%20Fecha%20actual%20en%20from_date.user.js
 // ==/UserScript==
 
 (function () {

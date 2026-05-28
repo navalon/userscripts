@@ -6,6 +6,8 @@
 // @author       TuNombre
 // @match        https://*/wp-admin/admin.php?page=correosexpress-utilidades
 // @grant        none
+// @updateURL    https://raw.githubusercontent.com/navalon/userscripts/main/scripts/woocommerce/Colocar%20bot%C3%B3n%20de%20Generar%20Env%C3%ADos%20junto%20a%20Buscar%20Env%C3%ADos%20con%20Padding%20%28artsans%29.user.js
+// @downloadURL  https://raw.githubusercontent.com/navalon/userscripts/main/scripts/woocommerce/Colocar%20bot%C3%B3n%20de%20Generar%20Env%C3%ADos%20junto%20a%20Buscar%20Env%C3%ADos%20con%20Padding%20%28artsans%29.user.js
 // ==/UserScript==
 
 (function() {

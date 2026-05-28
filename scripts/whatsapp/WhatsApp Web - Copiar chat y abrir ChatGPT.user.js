@@ -6,6 +6,8 @@
 // @match        https://web.whatsapp.com/*
 // @grant        GM_setClipboard
 // @run-at       document-idle
+// @updateURL    https://raw.githubusercontent.com/navalon/userscripts/main/scripts/whatsapp/WhatsApp%20Web%20-%20Copiar%20chat%20y%20abrir%20ChatGPT.user.js
+// @downloadURL  https://raw.githubusercontent.com/navalon/userscripts/main/scripts/whatsapp/WhatsApp%20Web%20-%20Copiar%20chat%20y%20abrir%20ChatGPT.user.js
 // ==/UserScript==
 
 (function () {

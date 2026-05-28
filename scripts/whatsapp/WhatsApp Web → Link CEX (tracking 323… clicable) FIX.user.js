@@ -6,6 +6,8 @@
 // @match        https://web.whatsapp.com/*
 // @grant        none
 // @run-at       document-idle
+// @updateURL    https://raw.githubusercontent.com/navalon/userscripts/main/scripts/whatsapp/WhatsApp%20Web%20%E2%86%92%20Link%20CEX%20%28tracking%20323%E2%80%A6%20clicable%29%20FIX.user.js
+// @downloadURL  https://raw.githubusercontent.com/navalon/userscripts/main/scripts/whatsapp/WhatsApp%20Web%20%E2%86%92%20Link%20CEX%20%28tracking%20323%E2%80%A6%20clicable%29%20FIX.user.js
 // ==/UserScript==
 
 (function () {

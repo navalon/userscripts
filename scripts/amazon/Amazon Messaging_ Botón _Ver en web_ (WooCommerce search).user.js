@@ -6,6 +6,8 @@
 // @match        https://sellercentral.amazon.es/messaging*
 // @grant        none
 // @run-at       document-idle
+// @updateURL    https://raw.githubusercontent.com/navalon/userscripts/main/scripts/amazon/Amazon%20Messaging_%20Bot%C3%B3n%20_Ver%20en%20web_%20%28WooCommerce%20search%29.user.js
+// @downloadURL  https://raw.githubusercontent.com/navalon/userscripts/main/scripts/amazon/Amazon%20Messaging_%20Bot%C3%B3n%20_Ver%20en%20web_%20%28WooCommerce%20search%29.user.js
 // ==/UserScript==
 
 (function () {

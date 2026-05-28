@@ -6,6 +6,8 @@
 // @match        https://artsans.es/wp-admin/edit.php*
 // @grant        none
 // @run-at       document-idle
+// @updateURL    https://raw.githubusercontent.com/navalon/userscripts/main/scripts/woocommerce/Woo%20Admin%20%28Artsans%29%20%E2%86%92%20Auto%20abrir%20%C3%BAnico%20resultado%20%28shop_order%29.user.js
+// @downloadURL  https://raw.githubusercontent.com/navalon/userscripts/main/scripts/woocommerce/Woo%20Admin%20%28Artsans%29%20%E2%86%92%20Auto%20abrir%20%C3%BAnico%20resultado%20%28shop_order%29.user.js
 // ==/UserScript==
 
 (function () {

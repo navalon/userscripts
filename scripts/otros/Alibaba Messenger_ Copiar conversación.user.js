@@ -7,6 +7,8 @@
 // @grant        GM_setClipboard
 // @grant        GM_addStyle
 // @run-at       document-idle
+// @updateURL    https://raw.githubusercontent.com/navalon/userscripts/main/scripts/otros/Alibaba%20Messenger_%20Copiar%20conversaci%C3%B3n.user.js
+// @downloadURL  https://raw.githubusercontent.com/navalon/userscripts/main/scripts/otros/Alibaba%20Messenger_%20Copiar%20conversaci%C3%B3n.user.js
 // ==/UserScript==
 
 (function () {

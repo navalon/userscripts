@@ -5,6 +5,8 @@
 // @description  Descarga el bloque visible de la pestaña activa, sin importar el id
 // @match        https://subastas.boe.es/detalleSubasta.php*
 // @grant        none
+// @updateURL    https://raw.githubusercontent.com/navalon/userscripts/main/scripts/otros/Descargar%20Bloque%20Din%C3%A1mico%20Visible%20BOE.user.js
+// @downloadURL  https://raw.githubusercontent.com/navalon/userscripts/main/scripts/otros/Descargar%20Bloque%20Din%C3%A1mico%20Visible%20BOE.user.js
 // ==/UserScript==
 
 (function() {

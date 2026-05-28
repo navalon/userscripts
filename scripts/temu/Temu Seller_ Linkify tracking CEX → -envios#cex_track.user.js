@@ -6,6 +6,8 @@
 // @match        https://seller-eu.temu.com/order-detail.html*
 // @grant        none
 // @run-at       document-idle
+// @updateURL    https://raw.githubusercontent.com/navalon/userscripts/main/scripts/temu/Temu%20Seller_%20Linkify%20tracking%20CEX%20%E2%86%92%20-envios%23cex_track.user.js
+// @downloadURL  https://raw.githubusercontent.com/navalon/userscripts/main/scripts/temu/Temu%20Seller_%20Linkify%20tracking%20CEX%20%E2%86%92%20-envios%23cex_track.user.js
 // ==/UserScript==
 
 (function () {
