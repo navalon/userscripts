@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         AliExpress - Exportar pedidos última semana, descargar y abrir confirmación masiva
 // @namespace    https://gsp.aliexpress.com/
-// @version      1.3.1
+// @version      1.4.0
 // @description  Selecciona la última semana, fija desplegables, exporta, descarga el archivo y abre la pestaña de confirmación masiva.
 // @match        https://gsp.aliexpress.com/m_apps/biz_local/order-manage/orderExport*
 // @grant        GM_openInTab
@@ -196,6 +196,68 @@
         // Fallback: no había botón -> el componente confirmará solo
     }
 
+    /* ---------- escritura directa en inputs React ---------- */
+    function setNativeValue(el, value) {
+        const proto = Object.getPrototypeOf(el);
+        const desc = Object.getOwnPropertyDescriptor(proto, 'value');
+        if (desc && desc.set) desc.set.call(el, value);
+        else el.value = value;
+    }
+
+    function fireKey(el, type) {
+        el.dispatchEvent(new KeyboardEvent(type, {
+            key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true
+        }));
+    }
+
+    async function typeDateInto(input, value) {
+        input.focus();
+        await sleep(80);
+        // Limpiar valor previo
+        setNativeValue(input, '');
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        await sleep(60);
+        // Escribir nuevo valor
+        setNativeValue(input, value);
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+        await sleep(150);
+        // Confirmar con Enter
+        fireKey(input, 'keydown');
+        fireKey(input, 'keypress');
+        fireKey(input, 'keyup');
+        await sleep(200);
+    }
+
+    async function setDateRangeByTyping(startIso, endIso) {
+        const startInput = findInputByPlaceholders(START_PLACEHOLDERS);
+        const endInput   = findInputByPlaceholders(END_PLACEHOLDERS);
+        if (!startInput || !endInput) return false;
+
+        // Asegurar foco en el input de inicio (algunos componentes solo aceptan
+        // escritura cuando el dropdown está abierto)
+        try { await openPicker(); } catch (_) { /* puede estar abierto ya */ }
+        await sleep(150);
+
+        await typeDateInto(startInput, `${startIso} 00:00:00`);
+        await sleep(200);
+        await clickAceptarDropdown();
+        await sleep(400);
+
+        // El segundo input requiere foco propio
+        await typeDateInto(endInput, `${endIso} 23:59:59`);
+        await sleep(200);
+        await clickAceptarDropdown();
+        await sleep(300);
+
+        document.body.click();
+        await sleep(200);
+
+        const s = findInputByPlaceholders(START_PLACEHOLDERS);
+        const e = findInputByPlaceholders(END_PLACEHOLDERS);
+        return !!(s && e && s.value && e.value);
+    }
+
     async function setDateRange() {
         // Cerrar cualquier picker abierto y limpiar
         document.body.click();
@@ -212,30 +274,34 @@
         const startIso = isoDate(weekAgo);
         const endIso = isoDate(today);
 
-        // Abrir picker
+        // Estrategia 1: escribir las fechas directamente en los inputs
+        if (await setDateRangeByTyping(startIso, endIso)) {
+            console.log('[AE Export] Fechas fijadas por escritura directa');
+            return;
+        }
+        console.log('[AE Export] Escritura directa no surtió efecto; intentando con picker');
+
+        // Estrategia 2 (fallback): picker tradicional con navegación de meses
+        document.body.click();
+        await sleep(200);
+        const clearBtn2 = document.querySelector('.ait-picker-clear');
+        if (clearBtn2 && clearBtn2.offsetParent !== null) {
+            clearBtn2.click();
+            await sleep(300);
+        }
         await openPicker();
         await sleep(200);
-
-        // Click fecha inicio
         await clickCell(startIso);
         await sleep(400);
-
-        // Confirmar hora de inicio
         await clickAceptarDropdown();
         await sleep(500);
-
-        // Click fecha fin
         await clickCell(endIso);
         await sleep(400);
-
-        // Confirmar hora de fin
         await clickAceptarDropdown();
         await sleep(300);
-
         document.body.click();
         await sleep(200);
 
-        // Verificación
         const startInput = findInputByPlaceholders(START_PLACEHOLDERS);
         const endInput   = findInputByPlaceholders(END_PLACEHOLDERS);
         if (!startInput || !endInput || !startInput.value || !endInput.value) {
