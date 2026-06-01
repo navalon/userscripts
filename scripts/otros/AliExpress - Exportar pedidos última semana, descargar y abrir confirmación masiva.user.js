@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         AliExpress - Exportar pedidos última semana, descargar y abrir confirmación masiva
 // @namespace    https://gsp.aliexpress.com/
-// @version      1.4.0
+// @version      1.4.1
 // @description  Selecciona la última semana, fija desplegables, exporta, descarga el archivo y abre la pestaña de confirmación masiva.
 // @match        https://gsp.aliexpress.com/m_apps/biz_local/order-manage/orderExport*
 // @grant        GM_openInTab
@@ -154,9 +154,11 @@
     }
 
     function findPrevMonthBtn() {
-        // El dropdown del picker normalmente tiene una flecha "mes anterior"
+        // El dropdown del picker tiene una flecha "mes anterior".
+        // AliExpress la marca como .ait-picker-prev-icon (span clicable).
         const root = document.querySelector('.ait-picker-dropdown') || document;
         return root.querySelector(
+            '.ait-picker-prev-icon, ' +
             '.ait-picker-header-prev-month-btn, ' +
             '.ait-picker-prev-month, ' +
             'button[aria-label*="prev" i], ' +
@@ -274,40 +276,43 @@
         const startIso = isoDate(weekAgo);
         const endIso = isoDate(today);
 
-        // Estrategia 1: escribir las fechas directamente en los inputs
+        // Estrategia 1 (primaria): picker con navegación de meses + click en celda
+        // (la única que activa el botón OK del componente AliExpress).
+        try {
+            await openPicker();
+            await sleep(200);
+            await clickCell(startIso);
+            await sleep(400);
+            await clickAceptarDropdown();
+            await sleep(500);
+            await clickCell(endIso);
+            await sleep(400);
+            await clickAceptarDropdown();
+            await sleep(300);
+            document.body.click();
+            await sleep(200);
+
+            const s1 = findInputByPlaceholders(START_PLACEHOLDERS);
+            const e1 = findInputByPlaceholders(END_PLACEHOLDERS);
+            if (s1 && e1 && s1.value && e1.value) {
+                console.log('[AE Export] Fechas fijadas por picker');
+                return;
+            }
+            console.log('[AE Export] Picker no rellenó valores; probando escritura directa');
+        } catch (err) {
+            console.log('[AE Export] Picker falló:', err.message, '— probando escritura directa');
+        }
+
+        // Estrategia 2 (fallback): escribir las fechas directamente en los inputs
         if (await setDateRangeByTyping(startIso, endIso)) {
             console.log('[AE Export] Fechas fijadas por escritura directa');
             return;
         }
-        console.log('[AE Export] Escritura directa no surtió efecto; intentando con picker');
 
-        // Estrategia 2 (fallback): picker tradicional con navegación de meses
-        document.body.click();
-        await sleep(200);
-        const clearBtn2 = document.querySelector('.ait-picker-clear');
-        if (clearBtn2 && clearBtn2.offsetParent !== null) {
-            clearBtn2.click();
-            await sleep(300);
-        }
-        await openPicker();
-        await sleep(200);
-        await clickCell(startIso);
-        await sleep(400);
-        await clickAceptarDropdown();
-        await sleep(500);
-        await clickCell(endIso);
-        await sleep(400);
-        await clickAceptarDropdown();
-        await sleep(300);
-        document.body.click();
-        await sleep(200);
-
+        dumpDiagnostics('setDateRange: ambas estrategias fallaron');
         const startInput = findInputByPlaceholders(START_PLACEHOLDERS);
         const endInput   = findInputByPlaceholders(END_PLACEHOLDERS);
-        if (!startInput || !endInput || !startInput.value || !endInput.value) {
-            dumpDiagnostics('setDateRange: inputs sin valor');
-            throw new Error(`Fechas no rellenadas (start="${startInput && startInput.value}", end="${endInput && endInput.value}")`);
-        }
+        throw new Error(`Fechas no rellenadas (start="${startInput && startInput.value}", end="${endInput && endInput.value}")`);
     }
 
     /* ---------- exportar ---------- */
