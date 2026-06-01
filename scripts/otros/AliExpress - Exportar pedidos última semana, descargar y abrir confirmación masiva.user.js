@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         AliExpress - Exportar pedidos última semana, descargar y abrir confirmación masiva
 // @namespace    https://gsp.aliexpress.com/
-// @version      1.3.0
+// @version      1.3.1
 // @description  Selecciona la última semana, fija desplegables, exporta, descarga el archivo y abre la pestaña de confirmación masiva.
 // @match        https://gsp.aliexpress.com/m_apps/biz_local/order-manage/orderExport*
 // @grant        GM_openInTab
@@ -128,10 +128,61 @@
         throw new Error('No se abrió el picker de fechas');
     }
 
-    function clickCell(isoDateStr) {
-        const cell = document.querySelector(`.ait-picker-cell[title="${isoDateStr}"]`);
-        if (!cell) throw new Error('No se encontró la celda ' + isoDateStr);
-        cell.click();
+    const MONTH_NAMES_EN = ['January','February','March','April','May','June',
+                            'July','August','September','October','November','December'];
+    const MONTH_NAMES_ES = ['enero','febrero','marzo','abril','mayo','junio',
+                            'julio','agosto','septiembre','octubre','noviembre','diciembre'];
+
+    function findCellByDate(isoDateStr) {
+        // 1) por title ISO
+        let cell = document.querySelector(`.ait-picker-cell[title="${isoDateStr}"]`);
+        if (cell) return cell;
+        // 2) por title en formatos locales
+        const [y, m, d] = isoDateStr.split('-').map(Number);
+        const altTitles = [
+            `${MONTH_NAMES_EN[m-1]} ${d}, ${y}`,
+            `${d} ${MONTH_NAMES_EN[m-1]} ${y}`,
+            `${d} de ${MONTH_NAMES_ES[m-1]} de ${y}`,
+            `${String(d).padStart(2,'0')}/${String(m).padStart(2,'0')}/${y}`,
+            `${y}/${String(m).padStart(2,'0')}/${String(d).padStart(2,'0')}`,
+        ];
+        for (const t of altTitles) {
+            cell = document.querySelector(`.ait-picker-cell[title="${t}"]`);
+            if (cell) return cell;
+        }
+        return null;
+    }
+
+    function findPrevMonthBtn() {
+        // El dropdown del picker normalmente tiene una flecha "mes anterior"
+        const root = document.querySelector('.ait-picker-dropdown') || document;
+        return root.querySelector(
+            '.ait-picker-header-prev-month-btn, ' +
+            '.ait-picker-prev-month, ' +
+            'button[aria-label*="prev" i], ' +
+            'button[aria-label*="anterior" i], ' +
+            '.next-icon-arrow-left'
+        ) || [...root.querySelectorAll('button, a, span, i')]
+            .find(el => /^<|‹|◀|prev/i.test((el.innerText || el.getAttribute('aria-label') || '').trim()));
+    }
+
+    async function clickCell(isoDateStr) {
+        let cell = findCellByDate(isoDateStr);
+        if (cell) { cell.click(); return; }
+        // Navegar atrás meses hasta encontrarla (máx. 24 = 2 años)
+        for (let i = 0; i < 24; i++) {
+            const prev = findPrevMonthBtn();
+            if (!prev) break;
+            prev.click();
+            await sleep(220);
+            cell = findCellByDate(isoDateStr);
+            if (cell) { cell.click(); return; }
+        }
+        dumpDiagnostics('clickCell: celda no encontrada para ' + isoDateStr);
+        const sampleTitles = [...document.querySelectorAll('.ait-picker-cell')]
+            .slice(0, 8).map(c => c.title || c.innerText.trim());
+        console.log('[AE Export] Sample picker cell titles:', sampleTitles);
+        throw new Error('No se encontró la celda ' + isoDateStr);
     }
 
     async function clickAceptarDropdown() {
@@ -166,7 +217,7 @@
         await sleep(200);
 
         // Click fecha inicio
-        clickCell(startIso);
+        await clickCell(startIso);
         await sleep(400);
 
         // Confirmar hora de inicio
@@ -174,7 +225,7 @@
         await sleep(500);
 
         // Click fecha fin
-        clickCell(endIso);
+        await clickCell(endIso);
         await sleep(400);
 
         // Confirmar hora de fin
