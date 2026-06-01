@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         AliExpress - Exportar pedidos última semana, descargar y abrir confirmación masiva
 // @namespace    https://gsp.aliexpress.com/
-// @version      1.2.1
+// @version      1.3.0
 // @description  Selecciona la última semana, fija desplegables, exporta, descarga el archivo y abre la pestaña de confirmación masiva.
 // @match        https://gsp.aliexpress.com/m_apps/biz_local/order-manage/orderExport*
 // @grant        GM_openInTab
@@ -26,6 +26,49 @@
         return k ? el[k] : null;
     }
 
+    // Placeholders aceptados (ES/EN) para los inputs del rango de fechas
+    const START_PLACEHOLDERS = ['Start Time', 'Hora de inicio', 'Start time', 'Start date', 'Fecha de inicio'];
+    const END_PLACEHOLDERS   = ['End Time',   'Hora de fin',    'End time',   'End date',   'Fecha de fin'];
+
+    function findInputByPlaceholders(candidates) {
+        // 1) match exacto
+        for (const ph of candidates) {
+            const el = document.querySelector(`input[placeholder="${ph}"]`);
+            if (el) return el;
+        }
+        // 2) match parcial (case-insensitive) sobre el placeholder real
+        const all = [...document.querySelectorAll('input[placeholder]')];
+        for (const el of all) {
+            const p = (el.placeholder || '').toLowerCase();
+            if (candidates.some(c => p.includes(c.toLowerCase()))) return el;
+        }
+        // 3) fallback genérico: input dentro de un picker conocido (primero=start, segundo=end)
+        const pickerInputs = document.querySelectorAll(
+            '.ait-picker input, .next-range-picker input, .next-date-picker input'
+        );
+        if (pickerInputs.length >= 2) {
+            return candidates === START_PLACEHOLDERS ? pickerInputs[0] : pickerInputs[1];
+        }
+        return null;
+    }
+
+    function dumpDiagnostics(reason) {
+        try {
+            console.group('[AE Export] Diagnóstico (' + reason + ')');
+            const inputs = [...document.querySelectorAll('input')];
+            console.log('inputs con placeholder:', inputs
+                .filter(i => i.placeholder)
+                .map(i => i.placeholder));
+            ['ait-picker','ait-picker-dropdown','next-date-picker','next-range-picker',
+             'next-time-picker','order-export-time-select','order-export-status-select',
+             'order-export-reason-select']
+                .forEach(c => console.log('.' + c + ':', document.querySelectorAll('.' + c).length));
+            console.log('botones visibles:', [...document.querySelectorAll('button')]
+                .map(b => b.innerText.trim()).filter(Boolean).slice(0, 30));
+            console.groupEnd();
+        } catch (_) { /* noop */ }
+    }
+
     function openShipmentTab() {
         try {
             if (typeof GM_openInTab === 'function') {
@@ -39,15 +82,18 @@
     }
 
     /* ---------- dropdowns next-select ---------- */
-    async function pickOption(triggerSelector, optionText) {
+    async function pickOption(triggerSelector, optionTexts) {
+        const candidates = Array.isArray(optionTexts) ? optionTexts : [optionTexts];
         const trigger = document.querySelector(triggerSelector);
         if (!trigger) return;
-        if (trigger.innerText.trim().startsWith(optionText)) return;
+        const current = trigger.innerText.trim().toLowerCase();
+        if (candidates.some(t => current.startsWith(t.toLowerCase()))) return;
         trigger.click();
         await sleep(300);
         const items = document.querySelectorAll('.next-menu-item, li[role="option"]');
         for (const it of items) {
-            if (it.innerText.trim() === optionText) {
+            const txt = it.innerText.trim();
+            if (candidates.some(t => txt.toLowerCase() === t.toLowerCase())) {
                 it.click();
                 await sleep(200);
                 return;
@@ -58,8 +104,11 @@
 
     /* ---------- abrir picker invocando handlers React ---------- */
     async function openPicker() {
-        const input = document.querySelectorAll('input[placeholder*="Hora"]')[0];
-        if (!input) throw new Error('Input "Hora de inicio" no encontrado');
+        const input = findInputByPlaceholders(START_PLACEHOLDERS);
+        if (!input) {
+            dumpDiagnostics('openPicker: input de fecha inicio no encontrado');
+            throw new Error('Input de "Start Time / Hora de inicio" no encontrado');
+        }
         const props = getReactProps(input);
         if (!props) throw new Error('No se pudieron leer reactProps del input');
         const fakeEvt = {
@@ -75,6 +124,7 @@
             const dd = document.querySelector('.ait-picker-dropdown');
             if (dd && dd.offsetWidth > 0) return;
         }
+        dumpDiagnostics('openPicker: dropdown no apareció');
         throw new Error('No se abrió el picker de fechas');
     }
 
@@ -85,10 +135,10 @@
     }
 
     async function clickAceptarDropdown() {
-        // Botón "Aceptar" / "OK" dentro del dropdown abierto
-        for (let i = 0; i < 20; i++) {
+        // Botón "Aceptar" / "OK" / "Confirm" dentro del dropdown abierto
+        for (let i = 0; i < 30; i++) {
             const btn = [...document.querySelectorAll('.ait-picker-dropdown button')]
-                .find(b => /aceptar|ok/i.test(b.innerText.trim()) && !b.disabled);
+                .find(b => /^(aceptar|ok|confirm|confirmar)$/i.test(b.innerText.trim()) && !b.disabled);
             if (btn) { btn.click(); return; }
             await sleep(100);
         }
@@ -135,25 +185,37 @@
         await sleep(200);
 
         // Verificación
-        const inputs = document.querySelectorAll('input[placeholder*="Hora"]');
-        if (!inputs[0].value || !inputs[1].value) {
-            throw new Error(`Fechas no rellenadas (start="${inputs[0].value}", end="${inputs[1].value}")`);
+        const startInput = findInputByPlaceholders(START_PLACEHOLDERS);
+        const endInput   = findInputByPlaceholders(END_PLACEHOLDERS);
+        if (!startInput || !endInput || !startInput.value || !endInput.value) {
+            dumpDiagnostics('setDateRange: inputs sin valor');
+            throw new Error(`Fechas no rellenadas (start="${startInput && startInput.value}", end="${endInput && endInput.value}")`);
         }
     }
 
     /* ---------- exportar ---------- */
+    const EXPORT_BUTTON_TEXTS = ['Export', 'Orden de exportación', 'Export order', 'Exportar'];
     async function clickExport() {
         const btn = [...document.querySelectorAll('button')]
-            .find(b => b.innerText.trim() === 'Orden de exportación');
-        if (!btn) throw new Error('Botón "Orden de exportación" no encontrado');
+            .find(b => {
+                const t = b.innerText.trim().toLowerCase();
+                return EXPORT_BUTTON_TEXTS.some(c => t === c.toLowerCase());
+            });
+        if (!btn) {
+            dumpDiagnostics('clickExport: botón de exportar no encontrado');
+            throw new Error('Botón "Export / Orden de exportación" no encontrado');
+        }
         btn.click();
     }
 
     /* ---------- esperar fila finalizada y descargar ---------- */
+    const REFRESH_TEXTS  = ['Refrescar', 'Refresh', 'Actualizar'];
+    const COMPLETE_TEXTS = ['Finalizado', 'Complete', 'Completed', 'Finalizada', 'Completado'];
+
     async function waitAndDownload(previousFirstId) {
         const refrescar = () => {
             const r = [...document.querySelectorAll('a, button, span')]
-                .find(el => el.innerText && el.innerText.trim() === 'Refrescar');
+                .find(el => el.innerText && REFRESH_TEXTS.includes(el.innerText.trim()));
             if (r) r.click();
         };
 
@@ -173,7 +235,8 @@
             if (cells.length < 2) continue;
 
             const taskId = cells[1]?.innerText.trim();
-            const estado = firstRow.innerText.includes('Finalizado');
+            const rowText = firstRow.innerText;
+            const estado = COMPLETE_TEXTS.some(t => rowText.includes(t));
             const downloadLink = firstRow.querySelector('a[href*=".xlsx"]');
 
             if (taskId && taskId !== previousFirstId && estado && downloadLink) {
@@ -217,9 +280,9 @@
                 ? firstRow.querySelectorAll('td')[1]?.innerText.trim()
                 : null;
 
-            await pickOption('.order-export-status-select', 'Pendiente de envío');
-            await pickOption('.order-export-time-select',  'Fecha de pedido');
-            await pickOption('.order-export-reason-select','Envío de mercancía');
+            await pickOption('.order-export-status-select', ['Pendiente de envío', 'Unshipped', 'Pending shipment']);
+            await pickOption('.order-export-time-select',   ['Fecha de pedido', 'Order date', 'Order time']);
+            await pickOption('.order-export-reason-select', ['Envío de mercancía', 'Shipping', 'Goods shipment']);
 
             await setDateRange();
             await clickExport();
