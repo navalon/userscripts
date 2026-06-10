@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MVP1 Bridge — ChatGPT + Amazon + Temu
 // @namespace    https://github.com/navalon/userscripts
-// @version      3.4.0
+// @version      3.4.1
 // @description  Script unificado MVP1: en ChatGPT muestra botón "Usar como destino",
 //               en Amazon/Temu extrae conversación y abre el chat destino. En Amazon
 //               adjunta también la trazabilidad de Correos Express del envío y
@@ -255,11 +255,15 @@
       try { return JSON.parse(GM_getValue(CEX_CREDS_KEY, '') || 'null'); } catch { return null; }
     }
     function findTrackingFromMetaItems(metaItems) {
-      let priority = '', fallback = '';
+      let priority = '', fallback = '', cex = '';
+      const dump = [];
       metaItems.forEach(it => {
         const label = (qVisible('.linked-context-field-item-label', it)?.innerText || '').toLowerCase();
         const val = (qVisible('.gray', it)?.innerText || '').trim();
+        dump.push({ label, val });
         if (!val) return;
+        const mCex = val.match(/\b(323\d{13})\b/);
+        if (mCex && !cex) cex = mCex[1];
         const m = val.match(/\b(\d{13,16})\b/);
         if (!m) return;
         if (/segui|tracking|env[ií]o/.test(label)) {
@@ -268,7 +272,9 @@
           fallback = m[1];
         }
       });
-      return priority || fallback || '';
+      const found = cex || priority || fallback || '';
+      console.log('[MVP1 Bridge] meta items:', dump, '→ tracking detectado:', found);
+      return found;
     }
     function cexFetchTrace(tracking) {
       const creds = cexGetCreds();
@@ -392,12 +398,20 @@
         }
         await raf(); await sleep(60);
         const { text: convText, tracking } = collectConversation();
+        const creds = cexGetCreds();
+        const dbg = [];
+        dbg.push('🔎 Diagnóstico CEX:');
+        dbg.push(`• Credenciales en localStorage/GM: ${creds ? 'OK (codigoCliente=' + creds.codigoCliente + ')' : 'NO ENCONTRADAS'}`);
+        dbg.push(`• Tracking detectado en metadatos: ${tracking || '(ninguno)'}`);
         let fullText = convText;
         if (tracking) {
           btn.textContent = '🚚 Consultando CEX...';
           const result = await cexFetchTrace(tracking);
+          console.log('[MVP1 Bridge] respuesta CEX:', result);
+          dbg.push(`• Llamada API CEX: ${result.ok ? 'OK' : 'FALLÓ — ' + result.reason}`);
           fullText = convText + '\n\n' + cexFormatTrace(tracking, result);
         }
+        fullText = fullText + '\n\n' + dbg.join('\n');
         try { GM_setClipboard(fullText); } catch {}
         const url = `${targetURL}#from=amazon&payload=${encodeURIComponent(b64(fullText))}`;
         window.open(url, '_blank', 'noopener,noreferrer');
