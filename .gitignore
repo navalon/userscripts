@@ -17,6 +17,10 @@ backup-extracted/
 *.options.json
 *.storage.json
 
+# Userscripts companion con credenciales locales (no subir nunca)
+scripts/local/
+*.local.user.js
+
 # Brief original (contexto, no código)
 userscripts-brief-augment.md
 

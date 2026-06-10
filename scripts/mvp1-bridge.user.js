@@ -1,10 +1,13 @@
 // ==UserScript==
 // @name         MVP1 Bridge — ChatGPT + Amazon + Temu
 // @namespace    https://github.com/navalon/userscripts
-// @version      3.2.0
+// @version      3.4.0
 // @description  Script unificado MVP1: en ChatGPT muestra botón "Usar como destino",
-//               en Amazon/Temu extrae conversación y abre el chat destino. Comparte
-//               almacenamiento GM_setValue entre dominios (mismo script = mismo storage).
+//               en Amazon/Temu extrae conversación y abre el chat destino. En Amazon
+//               adjunta también la trazabilidad de Correos Express del envío y
+//               coloca el cursor en una sección de instrucciones manuales al final.
+//               Las credenciales CEX las inyecta un companion local (no versionado) en
+//               localStorage; comparte almacenamiento GM_setValue entre dominios.
 // @match        https://chatgpt.com/*
 // @match        https://chat.openai.com/*
 // @match        https://sellercentral.amazon.es/messaging*
@@ -15,6 +18,8 @@
 // @grant        GM_getValue
 // @grant        GM_setClipboard
 // @grant        GM_addStyle
+// @grant        GM_xmlhttpRequest
+// @connect      www.cexpr.es
 // @run-at       document-idle
 // ==/UserScript==
 
@@ -176,12 +181,32 @@
         const editor = document.querySelector('#prompt-textarea, [contenteditable="true"].ProseMirror, div[contenteditable="true"]');
         if (editor) {
           clearInterval(tryPaste);
-          // ProseMirror: insertar como párrafos
+          // ProseMirror: insertar como párrafos + bloque de instrucciones manuales con cursor al final
           editor.focus();
           const lines = text.split('\n');
-          editor.innerHTML = lines.map(l => `<p>${l || '<br>'}</p>`).join('');
-          // Disparar evento input para que React lo detecte
+          const SEP = '━━━━━━━━━━━━━━━━━━━━━━━━━━━━';
+          const html = lines.map(l => `<p>${l || '<br>'}</p>`).join('')
+            + `<p><br></p>`
+            + `<p>${SEP}</p>`
+            + `<p>✏️ Instrucciones adicionales:</p>`
+            + `<p><br></p>`;
+          editor.innerHTML = html;
           editor.dispatchEvent(new Event('input', { bubbles: true }));
+          // Colocar el cursor en el último párrafo vacío
+          setTimeout(() => {
+            try {
+              const last = editor.lastElementChild;
+              if (last) {
+                const range = document.createRange();
+                range.selectNodeContents(last);
+                range.collapse(false);
+                const sel = window.getSelection();
+                sel.removeAllRanges();
+                sel.addRange(range);
+                editor.focus();
+              }
+            } catch {}
+          }, 150);
           // Feedback visual
           const toast = document.createElement('div');
           toast.textContent = `✅ Conversación de ${from === 'amazon' ? 'Amazon' : 'Temu'} pegada (${lines.length} líneas)`;
@@ -202,6 +227,9 @@
   // ═══════════════════════════════════════════════
   function initAmazon() {
     const BTN_ID = 'tm-amazon-chatgpt-btn';
+    const CEX_CREDS_KEY = 'cex_creds_v1';
+    const CEX_LS_KEY = '__cex_creds_v1__';
+    const CEX_TRACE_URL = 'https://www.cexpr.es/wspsc/apiRestSeguimientoEnviosk8s/json/seguimientoEnvio';
     const b64 = (s) => btoa(unescape(encodeURIComponent(s)));
     const raf = () => new Promise(r => requestAnimationFrame(r));
     const sleep = (ms) => new Promise(r => setTimeout(r, ms));
@@ -214,6 +242,91 @@
     };
     const qVisible = (sel, root = document) => Array.from(root.querySelectorAll(sel)).find(isVisible) || null;
     const qqVisible = (sel, root = document) => Array.from(root.querySelectorAll(sel)).filter(isVisible);
+
+    // ── CEX: credenciales locales (companion script → localStorage; fallback GM_setValue) ──
+    function cexGetCreds() {
+      try {
+        const raw = (typeof localStorage !== 'undefined') ? localStorage.getItem(CEX_LS_KEY) : null;
+        if (raw) {
+          const c = JSON.parse(raw);
+          if (c && c.codigoCliente && c.usuario && c.password) return c;
+        }
+      } catch {}
+      try { return JSON.parse(GM_getValue(CEX_CREDS_KEY, '') || 'null'); } catch { return null; }
+    }
+    function findTrackingFromMetaItems(metaItems) {
+      let priority = '', fallback = '';
+      metaItems.forEach(it => {
+        const label = (qVisible('.linked-context-field-item-label', it)?.innerText || '').toLowerCase();
+        const val = (qVisible('.gray', it)?.innerText || '').trim();
+        if (!val) return;
+        const m = val.match(/\b(\d{13,16})\b/);
+        if (!m) return;
+        if (/segui|tracking|env[ií]o/.test(label)) {
+          if (!priority) priority = m[1];
+        } else if (!fallback) {
+          fallback = m[1];
+        }
+      });
+      return priority || fallback || '';
+    }
+    function cexFetchTrace(tracking) {
+      const creds = cexGetCreds();
+      if (!creds || !creds.codigoCliente || !creds.usuario || !creds.password) {
+        return Promise.resolve({ ok: false, reason: 'Sin credenciales CEX (instala el companion local).' });
+      }
+      const body = JSON.stringify({ codigoCliente: creds.codigoCliente, dato: tracking, idioma: 'ES' });
+      return new Promise((resolve) => {
+        try {
+          GM_xmlhttpRequest({
+            method: 'POST',
+            url: CEX_TRACE_URL,
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+              'Authorization': 'Basic ' + btoa(creds.usuario + ':' + creds.password),
+            },
+            data: body,
+            timeout: 15000,
+            onload: (r) => {
+              try { resolve({ ok: true, data: JSON.parse(r.responseText || '{}') }); }
+              catch { resolve({ ok: false, reason: 'Respuesta CEX no parseable' }); }
+            },
+            onerror: () => resolve({ ok: false, reason: 'Error de red al llamar a CEX' }),
+            ontimeout: () => resolve({ ok: false, reason: 'Timeout llamando a CEX' }),
+          });
+        } catch { resolve({ ok: false, reason: 'GM_xmlhttpRequest no disponible' }); }
+      });
+    }
+    function cexFormatTrace(tracking, result) {
+      const out = ['🚚 Correos Express — Trazabilidad', `Nº envío consultado: ${tracking}`];
+      if (!result.ok) { out.push(`⚠️ ${result.reason}`); return out.join('\n'); }
+      const d = result.data || {};
+      if (d.error && Number(d.error) !== 0) {
+        out.push(`⚠️ CEX error ${d.error}: ${d.mensajeError || ''}`);
+        return out.join('\n');
+      }
+      if (d.resultado)   out.push(`Estado actual: ${d.resultado}`);
+      if (d.numEnvio)    out.push(`numEnvio: ${d.numEnvio}`);
+      if (d.ref)         out.push(`Referencia: ${d.ref}`);
+      if (d.refCliente)  out.push(`Ref. cliente: ${d.refCliente}`);
+      if (d.fecha)       out.push(`Fecha envío: ${d.fecha}`);
+      const dest = [d.nomDestRte, d.dirDest, d.codPostNacDest, d.pobDest].filter(Boolean).join(' · ');
+      if (dest) out.push(`Destinatario: ${dest}`);
+      if (d.telefDest) out.push(`Teléfono destino: ${d.telefDest}`);
+      if (d.emailDest) out.push(`Email destino: ${d.emailDest}`);
+      if (d.observac)  out.push(`Observaciones: ${d.observac}`);
+      const estados = Array.isArray(d.estadoEnvios) ? d.estadoEnvios : [];
+      if (estados.length) {
+        out.push('');
+        out.push('Historial de estados:');
+        estados.forEach(e => {
+          const inc = e.descIncEstado ? ` (incidencia: ${e.descIncEstado})` : '';
+          out.push(`• [${e.fechaEstado || ''} ${e.horaEstado || ''}] ${e.descEstado || e.codEstado || ''}${inc}`);
+        });
+      }
+      return out.join('\n');
+    }
 
     function getActiveRoot() {
       const header = qVisible('.case-message-view-header');
@@ -258,7 +371,8 @@
           if (label && val) out.push(`${label}: ${val}`);
         });
       }
-      return out.join('\n');
+      const tracking = findTrackingFromMetaItems(metaItems);
+      return { text: out.join('\n'), tracking };
     }
 
     function addButton() {
@@ -277,9 +391,15 @@
           return;
         }
         await raf(); await sleep(60);
-        const text = collectConversation();
-        try { GM_setClipboard(text); } catch {}
-        const url = `${targetURL}#from=amazon&payload=${encodeURIComponent(b64(text))}`;
+        const { text: convText, tracking } = collectConversation();
+        let fullText = convText;
+        if (tracking) {
+          btn.textContent = '🚚 Consultando CEX...';
+          const result = await cexFetchTrace(tracking);
+          fullText = convText + '\n\n' + cexFormatTrace(tracking, result);
+        }
+        try { GM_setClipboard(fullText); } catch {}
+        const url = `${targetURL}#from=amazon&payload=${encodeURIComponent(b64(fullText))}`;
         window.open(url, '_blank', 'noopener,noreferrer');
         btn.textContent = '✅ Copiado y abriendo...';
         setTimeout(() => { btn.textContent = '📋 Copiar y abrir ChatGPT'; }, 1600);
@@ -295,7 +415,10 @@
         t = setTimeout(() => {
           const header = qVisible('.case-message-view-header');
           const btn = document.getElementById(BTN_ID);
-          if (header && (!btn || btn.parentElement !== header)) { btn?.remove(); addButton(); }
+          if (header && (!btn || btn.parentElement !== header)) {
+            btn?.remove();
+            addButton();
+          }
         }, 200);
       });
       mo.observe(document.body, { childList: true, subtree: true });
