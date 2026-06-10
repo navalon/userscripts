@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MVP1 Bridge — ChatGPT + Amazon + Temu
 // @namespace    https://github.com/navalon/userscripts
-// @version      3.4.2
+// @version      3.4.3
 // @description  Script unificado MVP1: en ChatGPT muestra botón "Usar como destino",
 //               en Amazon/Temu extrae conversación y abre el chat destino. En Amazon
 //               adjunta también la trazabilidad de Correos Express del envío y
@@ -254,17 +254,19 @@
       } catch {}
       try { return JSON.parse(GM_getValue(CEX_CREDS_KEY, '') || 'null'); } catch { return null; }
     }
-    function findTrackingFromMetaItems(metaItems, root) {
+    function findTrackingFromMetaItems(metaItemsLocal, root) {
       let priority = '', fallback = '', cex = '';
       const dump = [];
-      metaItems.forEach(it => {
+      // 1) Pase sobre los items que ya teníamos en el root activo.
+      metaItemsLocal.forEach(it => {
         const label = (qVisible('.linked-context-field-item-label', it)?.innerText || '').toLowerCase();
         const val = (qVisible('.gray', it)?.innerText || '').trim();
-        dump.push({ label, val });
+        dump.push({ src: 'root', label, val });
         if (!val) return;
-        const mCex = val.replace(/[\s\-]/g, '').match(/\b(323\d{13})\b/);
+        const norm = val.replace(/[\s\-]/g, '');
+        const mCex = norm.match(/(323\d{13})/);
         if (mCex && !cex) cex = mCex[1];
-        const m = val.replace(/[\s\-]/g, '').match(/\b(\d{13,16})\b/);
+        const m = norm.match(/(\d{13,16})/);
         if (!m) return;
         if (/segui|tracking|env[ií]o/.test(label)) {
           if (!priority) priority = m[1];
@@ -272,18 +274,36 @@
           fallback = m[1];
         }
       });
-      // Fallback: escanear el texto crudo de la zona lateral entera por si los selectores fallaron.
-      let panelText = '';
-      let panelCex = '';
+      // 2) Pase global: items en cualquier parte del documento (panel lateral fuera del root).
+      const globalItems = Array.from(document.querySelectorAll('.linked-context-field-items'));
+      globalItems.forEach(it => {
+        if (metaItemsLocal.includes(it)) return;
+        const label = (it.querySelector('.linked-context-field-item-label')?.innerText || '').toLowerCase();
+        const val = (it.querySelector('.gray')?.innerText || '').trim();
+        dump.push({ src: 'global', label, val });
+        if (!val) return;
+        const norm = val.replace(/[\s\-]/g, '');
+        const mCex = norm.match(/(323\d{13})/);
+        if (mCex && !cex) cex = mCex[1];
+        const m = norm.match(/(\d{13,16})/);
+        if (!m) return;
+        if (/segui|tracking|env[ií]o/.test(label)) {
+          if (!priority) priority = m[1];
+        } else if (!fallback) {
+          fallback = m[1];
+        }
+      });
+      // 3) Fallback: escanear todo el body por el patrón CEX (visible o no).
+      let bodyCex = '';
       try {
-        const panel = qVisible('.context-field-container', root || document) || qVisible('.linked-context-field-container', root || document) || root;
-        panelText = (panel?.innerText || '').replace(/[\s\-]/g, ' ');
-        const m = panelText.match(/\b(323\d{13})\b/);
-        if (m) panelCex = m[1];
+        const bodyText = (document.body.innerText || '').replace(/[\s\-]/g, '');
+        const m = bodyText.match(/(323\d{13})/);
+        if (m) bodyCex = m[1];
       } catch {}
-      const found = cex || priority || fallback || panelCex || '';
-      console.log('[MVP1 Bridge] meta items:', dump, '| panelCex:', panelCex, '→ tracking:', found);
-      return { tracking: found, dump, panelCex, panelTextSample: (panelText || '').slice(0, 500) };
+      const containers = Array.from(document.querySelectorAll('.context-field-container, .linked-context-field-container'));
+      const found = cex || priority || fallback || bodyCex || '';
+      console.log('[MVP1 Bridge] dump:', dump, '| containers:', containers.length, '| bodyCex:', bodyCex, '→ tracking:', found);
+      return { tracking: found, dump, bodyCex, containerCount: containers.length };
     }
     function cexFetchTrace(tracking) {
       const creds = cexGetCreds();
@@ -372,8 +392,9 @@
         if (date && body) out.push(`[${date}] ${who}: ${body}`);
       });
       out.push('');
-      const orderKat = qVisible('kat-link[data-ph-capture-attribute-order-id]', root);
-      const order = orderKat?.getAttribute('label') || orderKat?.getAttribute('data-ph-capture-attribute-order-id');
+      const orderKat = qqVisible('kat-link[data-ph-capture-attribute-order-id]', root)
+        .find(el => /^\d{3}-\d{7}-\d{7}$/.test(el.getAttribute('data-ph-capture-attribute-order-id') || ''));
+      const order = orderKat?.getAttribute('data-ph-capture-attribute-order-id');
       if (order) out.push(`📦 Pedido: ${order}`);
       const metaRoot = qVisible('.context-field-container', root);
       const metaItems = metaRoot ? qqVisible('.linked-context-field-items', metaRoot) : [];
@@ -413,12 +434,10 @@
         dbg.push(`• Credenciales en localStorage/GM: ${creds ? 'OK (codigoCliente=' + creds.codigoCliente + ')' : 'NO ENCONTRADAS'}`);
         dbg.push(`• Tracking detectado: ${tracking || '(ninguno)'}`);
         if (!tracking && trackInfo) {
-          dbg.push(`• Meta items leídos (${trackInfo.dump.length}):`);
-          trackInfo.dump.forEach((d, i) => dbg.push(`  ${i + 1}. label="${d.label}" | val="${d.val}"`));
-          if (trackInfo.panelTextSample) {
-            dbg.push(`• Muestra de texto del panel (primeros 500 chars):`);
-            dbg.push(`  ${trackInfo.panelTextSample}`);
-          }
+          dbg.push(`• Containers de metadatos encontrados en el documento: ${trackInfo.containerCount}`);
+          dbg.push(`• Items label/val leídos (${trackInfo.dump.length}):`);
+          trackInfo.dump.forEach((d, i) => dbg.push(`  ${i + 1}. [${d.src}] label="${d.label}" | val="${d.val}"`));
+          dbg.push(`• Búsqueda global de patrón 323XXXXXXXXXXXXX en body: ${trackInfo.bodyCex || '(no encontrado)'}`);
         }
         let fullText = convText;
         if (tracking) {
