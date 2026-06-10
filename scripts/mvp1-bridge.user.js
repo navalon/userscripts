@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MVP1 Bridge — ChatGPT + Amazon + Temu
 // @namespace    https://github.com/navalon/userscripts
-// @version      3.4.1
+// @version      3.4.2
 // @description  Script unificado MVP1: en ChatGPT muestra botón "Usar como destino",
 //               en Amazon/Temu extrae conversación y abre el chat destino. En Amazon
 //               adjunta también la trazabilidad de Correos Express del envío y
@@ -254,7 +254,7 @@
       } catch {}
       try { return JSON.parse(GM_getValue(CEX_CREDS_KEY, '') || 'null'); } catch { return null; }
     }
-    function findTrackingFromMetaItems(metaItems) {
+    function findTrackingFromMetaItems(metaItems, root) {
       let priority = '', fallback = '', cex = '';
       const dump = [];
       metaItems.forEach(it => {
@@ -262,9 +262,9 @@
         const val = (qVisible('.gray', it)?.innerText || '').trim();
         dump.push({ label, val });
         if (!val) return;
-        const mCex = val.match(/\b(323\d{13})\b/);
+        const mCex = val.replace(/[\s\-]/g, '').match(/\b(323\d{13})\b/);
         if (mCex && !cex) cex = mCex[1];
-        const m = val.match(/\b(\d{13,16})\b/);
+        const m = val.replace(/[\s\-]/g, '').match(/\b(\d{13,16})\b/);
         if (!m) return;
         if (/segui|tracking|env[ií]o/.test(label)) {
           if (!priority) priority = m[1];
@@ -272,9 +272,18 @@
           fallback = m[1];
         }
       });
-      const found = cex || priority || fallback || '';
-      console.log('[MVP1 Bridge] meta items:', dump, '→ tracking detectado:', found);
-      return found;
+      // Fallback: escanear el texto crudo de la zona lateral entera por si los selectores fallaron.
+      let panelText = '';
+      let panelCex = '';
+      try {
+        const panel = qVisible('.context-field-container', root || document) || qVisible('.linked-context-field-container', root || document) || root;
+        panelText = (panel?.innerText || '').replace(/[\s\-]/g, ' ');
+        const m = panelText.match(/\b(323\d{13})\b/);
+        if (m) panelCex = m[1];
+      } catch {}
+      const found = cex || priority || fallback || panelCex || '';
+      console.log('[MVP1 Bridge] meta items:', dump, '| panelCex:', panelCex, '→ tracking:', found);
+      return { tracking: found, dump, panelCex, panelTextSample: (panelText || '').slice(0, 500) };
     }
     function cexFetchTrace(tracking) {
       const creds = cexGetCreds();
@@ -377,8 +386,8 @@
           if (label && val) out.push(`${label}: ${val}`);
         });
       }
-      const tracking = findTrackingFromMetaItems(metaItems);
-      return { text: out.join('\n'), tracking };
+      const trackInfo = findTrackingFromMetaItems(metaItems, root);
+      return { text: out.join('\n'), tracking: trackInfo.tracking, trackInfo };
     }
 
     function addButton() {
@@ -397,12 +406,20 @@
           return;
         }
         await raf(); await sleep(60);
-        const { text: convText, tracking } = collectConversation();
+        const { text: convText, tracking, trackInfo } = collectConversation();
         const creds = cexGetCreds();
         const dbg = [];
         dbg.push('🔎 Diagnóstico CEX:');
         dbg.push(`• Credenciales en localStorage/GM: ${creds ? 'OK (codigoCliente=' + creds.codigoCliente + ')' : 'NO ENCONTRADAS'}`);
-        dbg.push(`• Tracking detectado en metadatos: ${tracking || '(ninguno)'}`);
+        dbg.push(`• Tracking detectado: ${tracking || '(ninguno)'}`);
+        if (!tracking && trackInfo) {
+          dbg.push(`• Meta items leídos (${trackInfo.dump.length}):`);
+          trackInfo.dump.forEach((d, i) => dbg.push(`  ${i + 1}. label="${d.label}" | val="${d.val}"`));
+          if (trackInfo.panelTextSample) {
+            dbg.push(`• Muestra de texto del panel (primeros 500 chars):`);
+            dbg.push(`  ${trackInfo.panelTextSample}`);
+          }
+        }
         let fullText = convText;
         if (tracking) {
           btn.textContent = '🚚 Consultando CEX...';
