@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MVP1 Bridge — ChatGPT + Amazon + Temu
 // @namespace    https://github.com/navalon/userscripts
-// @version      3.4.3
+// @version      3.4.4
 // @description  Script unificado MVP1: en ChatGPT muestra botón "Usar como destino",
 //               en Amazon/Temu extrae conversación y abre el chat destino. En Amazon
 //               adjunta también la trazabilidad de Correos Express del envío y
@@ -255,8 +255,18 @@
       try { return JSON.parse(GM_getValue(CEX_CREDS_KEY, '') || 'null'); } catch { return null; }
     }
     function findTrackingFromMetaItems(metaItemsLocal, root) {
-      let priority = '', fallback = '', cex = '';
+      let priority = '', fallback = '', cex = '', linkCex = '';
       const dump = [];
+      // 0) Pase prioritario: leer el href que ha construido el linkifier CEX
+      //    (formato: ...#cex_track=323XXXXXXXXXXXXX). Si ya fue linkificado, esto
+      //    es lo más fiable y desacoplado del DOM de Amazon.
+      try {
+        const links = Array.from(document.querySelectorAll('a[href*="cex_track="]'));
+        for (const a of links) {
+          const m = (a.href || '').match(/cex_track=(323\d{13})/);
+          if (m) { linkCex = m[1]; break; }
+        }
+      } catch {}
       // 1) Pase sobre los items que ya teníamos en el root activo.
       metaItemsLocal.forEach(it => {
         const label = (qVisible('.linked-context-field-item-label', it)?.innerText || '').toLowerCase();
@@ -301,9 +311,9 @@
         if (m) bodyCex = m[1];
       } catch {}
       const containers = Array.from(document.querySelectorAll('.context-field-container, .linked-context-field-container'));
-      const found = cex || priority || fallback || bodyCex || '';
-      console.log('[MVP1 Bridge] dump:', dump, '| containers:', containers.length, '| bodyCex:', bodyCex, '→ tracking:', found);
-      return { tracking: found, dump, bodyCex, containerCount: containers.length };
+      const found = linkCex || cex || priority || fallback || bodyCex || '';
+      console.log('[MVP1 Bridge] linkCex:', linkCex, '| dump:', dump, '| containers:', containers.length, '| bodyCex:', bodyCex, '→ tracking:', found);
+      return { tracking: found, dump, linkCex, bodyCex, containerCount: containers.length };
     }
     function cexFetchTrace(tracking) {
       const creds = cexGetCreds();
@@ -434,7 +444,8 @@
         dbg.push(`• Credenciales en localStorage/GM: ${creds ? 'OK (codigoCliente=' + creds.codigoCliente + ')' : 'NO ENCONTRADAS'}`);
         dbg.push(`• Tracking detectado: ${tracking || '(ninguno)'}`);
         if (!tracking && trackInfo) {
-          dbg.push(`• Containers de metadatos encontrados en el documento: ${trackInfo.containerCount}`);
+          dbg.push(`• Link cex_track=... en DOM: ${trackInfo.linkCex || '(no encontrado)'}`);
+          dbg.push(`• Containers de metadatos en el documento: ${trackInfo.containerCount}`);
           dbg.push(`• Items label/val leídos (${trackInfo.dump.length}):`);
           trackInfo.dump.forEach((d, i) => dbg.push(`  ${i + 1}. [${d.src}] label="${d.label}" | val="${d.val}"`));
           dbg.push(`• Búsqueda global de patrón 323XXXXXXXXXXXXX en body: ${trackInfo.bodyCex || '(no encontrado)'}`);
